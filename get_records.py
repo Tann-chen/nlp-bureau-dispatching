@@ -3,9 +3,9 @@ import csv
 import json
 import traceback
 
-original_file_path = "company.csv"
-target_file_path = "top5000.csv"
-top_lines = 5000
+original_file_path = "valid5000.csv"
+target_file_path = "pos_test.csv"
+top_lines = 100
 
 try:
     source_file = open(original_file_path, 'r', encoding='gb18030')
