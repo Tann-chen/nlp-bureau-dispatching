@@ -1,0 +1,1 @@
+1. to run synonyms : pip3 install absl-py==0.1.10
