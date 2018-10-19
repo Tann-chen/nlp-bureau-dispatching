@@ -2,7 +2,11 @@
 **.pages
 **.txt
 
-# misc
+#EXCLUSIVE
+!**/data/**
+
+# ENV
+.idea
 .DS_Store
 .env.local
 .env.development.local
