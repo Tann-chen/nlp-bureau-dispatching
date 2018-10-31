@@ -14,11 +14,6 @@ global label_map
 global instance_tokens
 
 
-# def chunks(l, n):
-#     for i in range(0, len(l), n):
-#         yield l[i:i + n]
-
-
 def index_of_agency(agency_name, agency_lst):
 	for index in range(0, len(agency_lst)):
 		if agency_lst[index] == agency_name:
@@ -33,6 +28,7 @@ def naive_bayes(training_set, test_set):
 	num_instance = len(training_set)
 	agency_freq = {}
 
+	print("[INFO] start calculating F(ai)...")
 	for iid, c in label_map.items():
 		if iid not in training_set:
 			continue
@@ -42,6 +38,7 @@ def naive_bayes(training_set, test_set):
 		else:
 			agency_freq[c] = agency_freq[c] + 1
 
+	print("[INFO] start calculating F(xi,ai)...")
 	# count the frequency of token in the instance belonging to the agency
 	# P(xi|A) = freq of token in instance belonging to the agency + 1 / num of instance belonging to the agency + 2
 	token_agency_freq = []
@@ -56,6 +53,8 @@ def naive_bayes(training_set, test_set):
 	# fill 2 dimension array
 	idx_token = 0
 	for token, instance_id_lst in inverse_index.items():
+		print("[TRAINING] calculating the F(xi,ai) for token: " + token)
+
 		for instance_id in instance_id_lst:
 			if instance_id not in training_set:
 				continue
@@ -66,14 +65,19 @@ def naive_bayes(training_set, test_set):
 
 		idx_token = idx_token + 1
 
+	print("[INFO] finish training...")
+
 
 	# testing
+	print("[INFO] start testing...")
 	correct_instance_ids = []
+	error_instance_ids = []
 
 	for iid in test_set:
 		tokens = instance_tokens[iid]
 		
-		# calculate possibility for every agency		
+		# calculate possibility for every agency
+		# only can learn from the agencies appeared in test set		
 		agency_possible = [1] * len(agency_lst)
 
 		# calculate p(ai)
@@ -92,7 +96,7 @@ def naive_bayes(training_set, test_set):
 				else:
 					freq_agenc_token = freq_agenc - token_agency_freq[aid][tid]
 
-				agency_possible[aid] = agency_possible[aid] + math.log10( (freq_agenc_token + 1 ) / (freq_agenc + 2) )
+				agency_possible[aid] = agency_possible[aid] + math.log10( (freq_agenc_token + 1) / (freq_agenc + 2) ) # smooth
 
 		# get the agency class with max possible
 		max_id = 0 
@@ -104,46 +108,52 @@ def naive_bayes(training_set, test_set):
 				max_id = i
 
 		estimate_label = agency_lst[max_id]
+		print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
 
 		if estimate_label == label_map[iid]:
 			correct_instance_ids.append(iid)
+			print("[INFO] correct estimate :" + str(iid))
+		else:
+			error_instance_ids.append(iid)
+			print("[INFO] error estimate :" + str(iid))
+
+	print("================== test finish =================")
+	print("Accuracy : " + str(len(correct_instance_ids) / len(test_set)))
 
 
-	print("----------- test finish -------------")
-	print("accuracy : " + str(len(correct_instance_ids) / len(test_set)))
+if __name__ == '__main__':
+	with open(index_file, 'rb') as iif:
+		inverse_index = pickle.load(iif)
+
+	with open(label_file, 'rb') as lbf:
+		label_map = pickle.load(lbf)
+
+	with open(instance_tokens_file, 'rb') as itf:
+		instance_tokens = pickle.load(itf)
 
 
+	# instance_chunks = chunks(list(label_map.keys()), 10)
+	# test_set = instance_chunks[9]
+	# for i in range(0, 9):
+	# 	training_set = training_set + instance_chunks[i]
+	instance_list = list(label_map.keys())
 
-with open(index_file, 'rb') as iif:
-	inverse_index = pickle.load(iif)
+	flag = math.ceil(len(instance_list) / 10)
+	print("[INFO] test set size :" + str(flag))
+	test_set = instance_list[: flag]
+	training_set = instance_list[flag :]
 
-with open(label_file, 'rb') as lbf:
-	label_map = pickle.load(lbf)
+	print("[INFO] start training...")
+	naive_bayes(training_set, test_set)
 
-with open(instance_tokens_file, 'rb') as itf:
-	instance_tokens = pickle.load(itf)
-
-
-# instance_chunks = chunks(list(label_map.keys()), 10)
-# test_set = instance_chunks[9]
-# for i in range(0, 9):
-# 	training_set = training_set + instance_chunks[i]
-instance_list = list(label_map.keys())
-
-flag = math.ceil(len(instance_list) / 10)
-test_set = instance_list[: flag]
-training_set = instance_list[flag+1 :]
-
-naive_bayes(training_set, test_set)
-
-# # 10 corss validation
-# for chunk in range(0, 10):
-# 	test_set = instance_chunks[chunk]
-# 	training_set = []
-# 	for i in range(0, 10):
-# 		if i != chunk:
-# 			training_set = training_set + instance_chunks[i]
-# 	naive_bayes(training_set, test_set)
+	# # 10 corss validation
+	# for chunk in range(0, 10):
+	# 	test_set = instance_chunks[chunk]
+	# 	training_set = []
+	# 	for i in range(0, 10):
+	# 		if i != chunk:
+	# 			training_set = training_set + instance_chunks[i]
+	# 	naive_bayes(training_set, test_set)
 
 
 

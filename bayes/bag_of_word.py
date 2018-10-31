@@ -8,8 +8,20 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def get_class_label(class_name, class_lst):
+	index = -1
+	for c in class_lst:
+		index = index + 1
+		if c == class_name:
+			return index
+	# if never found
+	class_lst.append(class_name)
+	return index + 1
+
+
+
 file_path = "testset.csv"
-source_file = open(file_path, 'r', encoding='gb18030')
+source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
 reader = csv.reader(source_file)
 
 
@@ -17,20 +29,45 @@ regexp_number = re.compile('^[0-9a-zA-Z]*$')
 regexp_punct = re.compile("^[\s+\!\/_,$%^*(+\"\')]+|[:：+——()?【】“”！，。？、~@#￥%……&*（）. 〉《 》〔〕；～ ％]$")
 
 
-stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局"]
+stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局", "内容", "工单", "问题"]
 NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
 inverse_index = {}
 label_map = {}
 instance_tokens = {}
+instance_classes = {}
 
+first_class_lst = []
+second_class_lst = []
+third_class_lst = []
+fourth_class_lst = []
 
 for row in reader:
 	instance_id = row[0]
-	label = row[6]
-	content = row[9]
+	label = row[9]
+	content = row[6]
+
+	class_1 = row[2]
+	class_2 = row[3]
+	class_3 = row[4]
+	class_4 = row[5]
 
 	if len(instance_id.strip()) == 0:
 		continue
+
+	# collect classes
+	class_labels = []
+
+	class_1_label = get_class_label(class_1, first_class_lst)
+	class_labels.append(class_1_label)
+
+	class_2_label = get_class_label(class_2, second_class_lst)
+	class_labels.append(class_2_label)
+
+	class_3_label = get_class_label(class_3, third_class_lst)
+	class_labels.append(class_3_label)
+
+	class_4_label = get_class_label(class_4, fourth_class_lst)
+	class_labels.append(class_4_label)
 
 	# build request
 	payload = {}
@@ -82,8 +119,9 @@ for row in reader:
 			print("[INFO] pos of token should be Ni : " + token)
 
 		# build inverse index
-		if pos not in ('Ni', 'Ns', 'n', 'j'):
+		if pos not in ('Ni', 'n', 'j'):  # Ns exclusive
 			print("exclusive :" + token + ":" + pos)   # print, but throw out
+
 		elif token in inverse_index.keys():
 			instances_set = inverse_index[token]
 			instances_set.add(instance_id)
@@ -96,13 +134,15 @@ for row in reader:
 			tokens.append(token)
 			print("add :" + token)
 
-	print("-----------------------------")
-
 	label_map[instance_id] = label
 	instance_tokens[instance_id] = tokens
+	instance_classes[instance_id] = class_labels
+	print("-----------------------------")
 
-print("================ end =============")
+
+print("================ END =================")
 print("totoal dimension :" + str(len(list(inverse_index.keys()))))
+print("total instance :" + str(len(list(instance_tokens.keys()))))
 
 
 with open('bow_inverse_index.pickle', 'wb') as f:
@@ -113,3 +153,6 @@ with open('instance_label.pickle', 'wb') as f:
 
 with open('instance_tokens.pickle', 'wb') as f:
 	pickle.dump(instance_tokens, f, pickle.HIGHEST_PROTOCOL)
+
+with open('instance_classes.pickle', 'wb') as f:
+	pickle.dump(instance_classes, f, pickle.HIGHEST_PROTOCOL)
