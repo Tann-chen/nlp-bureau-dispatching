@@ -20,8 +20,8 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "testset.csv"
-source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
+file_path = "testset_with_label.csv"
+source_file = open(file_path, 'r')  # encoding='gb18030'
 reader = csv.reader(source_file)
 
 
@@ -43,7 +43,7 @@ fourth_class_lst = []
 
 for row in reader:
 	instance_id = row[0]
-	label = row[9]
+	label = row[10]
 	content = row[6]
 
 	class_1 = row[2]
@@ -156,3 +156,11 @@ with open('instance_tokens.pickle', 'wb') as f:
 
 with open('instance_classes.pickle', 'wb') as f:
 	pickle.dump(instance_classes, f, pickle.HIGHEST_PROTOCOL)
+
+with open('classes_list.pickle', 'wb') as f:
+	classes_list = []
+	classes_list.append(first_class_lst)
+	classes_list.append(second_class_lst)
+	classes_list.append(third_class_lst)
+	classes_list.append(fourth_class_lst)
+	pickle.dump(classes_list, f, pickle.HIGHEST_PROTOCOL)

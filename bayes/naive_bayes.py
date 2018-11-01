@@ -8,10 +8,14 @@ import pickle
 index_file = "bow_inverse_index.pickle"
 label_file = "instance_label.pickle"
 instance_tokens_file = "instance_tokens.pickle"
+instance_classes_file = "instance_classes.pickle"
+classes_list_file = "classes_list.pickle"
 
 global inverse_index
 global label_map
 global instance_tokens
+global instance_classes
+global classes_list
 
 
 def index_of_agency(agency_name, agency_lst):
@@ -65,6 +69,29 @@ def naive_bayes(training_set, test_set):
 
 		idx_token = idx_token + 1
 
+
+	# count the frequency of classes value in class1, class2, class3, class4 for each agency
+	classes_agency_freq = []
+	for i in range(0, len(agency_lst)):
+		element = []
+		# for every class
+		for class_idx in range(0, 4):
+			temp_map = {}
+			for class_val in classes_list[class_idx]:
+				temp_map[class_val] = 0
+			element.append(temp_map)
+
+		classes_agency_freq.append(element)
+
+	for instance_id, classes in instance_classes.items():
+		agency = label_map[instance_id]
+		idx_agency = index_of_agency(agency, agency_lst)
+
+		for class_idx in range(0, 4):
+			class_val_index = classes[class_idx]
+			class_val = classes_list[class_idx][class_val_index]
+			classes_agency_freq[idx_agency][class_idx][class_val] = classes_agency_freq[idx_agency][class_idx][class_val] + 1
+
 	print("[INFO] finish training...")
 
 
@@ -86,6 +113,7 @@ def naive_bayes(training_set, test_set):
 			agency_possible[agency_idx] = agency_possible[agency_idx] + math.log10(freq / num_instance)
 			agency_idx = agency_idx + 1
 
+
 		# calculate tokens
 		for aid in range(0, len(agency_lst)):
 			freq_agenc = agency_freq[agency_lst[aid]]
@@ -97,6 +125,18 @@ def naive_bayes(training_set, test_set):
 					freq_agenc_token = freq_agenc - token_agency_freq[aid][tid]
 
 				agency_possible[aid] = agency_possible[aid] + math.log10( (freq_agenc_token + 1) / (freq_agenc + 2) ) # smooth
+
+
+		# calculate classes
+		class_values = instance_classes[iid]
+		for class_idx in range(0, 4):
+			class_val_index = class_values[class_idx]
+			class_val = classes_list[class_idx][class_val_index]
+
+			for aid in range(0, len(agency_lst)):
+				freq_agenc = agency_freq[agency_lst[aid]]
+				agency_possible[aid] = agency_possible[aid] + math.log10( (classes_agency_freq[aid][class_idx][class_val] + 1) / (freq_agenc + 2) )
+
 
 		# get the agency class with max possible
 		max_id = 0 
@@ -131,6 +171,11 @@ if __name__ == '__main__':
 	with open(instance_tokens_file, 'rb') as itf:
 		instance_tokens = pickle.load(itf)
 
+	with open(instance_classes_file, 'rb') as icf:
+		instance_classes = pickle.load(icf)
+
+	with open(classes_list_file, 'rb') as clf:
+		classes_list = pickle.load(clf)
 
 	# instance_chunks = chunks(list(label_map.keys()), 10)
 	# test_set = instance_chunks[9]
