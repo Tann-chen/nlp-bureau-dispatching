@@ -5,6 +5,7 @@
 
 #EXCLUSIVE
 !**/data/**
+!**/tfidf/**
 
 # ENV
 .idea
