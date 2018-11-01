@@ -72,14 +72,15 @@ def get_instance_tfidf_vector(instance_id, if_shuffled):
 
 
 if __name__ == '__main__':
+	
+
 	# test
-	start = time.time()
-	result  = get_instance_tfidf_vector("113508", True)
-	end = time.time()
-	print(str(len(result)))
-	result  = get_instance_tfidf_vector("113508", False)
-	print(str(len(result)))
-	print(end - start)
+	for i in  range(0, 100):
+		start = time.time()
+		result  = get_instance_tfidf_vector("113508", True)
+		end = time.time()
+		print(end - start)
+	
 
 
 
