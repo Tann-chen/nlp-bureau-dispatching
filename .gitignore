@@ -3,7 +3,10 @@
 **.txt
 **.pickle
 
-#EXCLUSIVE
+# COMPILED
+**/__pycache__/**
+
+# EXCLUSIVE
 !**/data/**
 !**/tfidf/**
 
