@@ -9,6 +9,6 @@
 	|
 	|- bayes 	: naive bayes 
 	|- data 	: intermediate data
-	|- lib	    : wheels library 
-	|- tfidf    : tfidf to extract features
+	|- lib	        : wheels library 
+	|- tfidf        : tfidf to extract features
 	|- sjc		: NN
