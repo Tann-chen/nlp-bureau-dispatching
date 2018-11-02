@@ -1,4 +1,4 @@
-import synonyms
+import lib.synonyms
 import pickle
 import json
 # from sklearn.cluster import KMeans
