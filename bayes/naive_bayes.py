@@ -148,14 +148,14 @@ def naive_bayes(training_set, test_set):
 				max_id = i
 
 		estimate_label = agency_lst[max_id]
-		print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
+		#print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
 
 		if estimate_label == label_map[iid]:
 			correct_instance_ids.append(iid)
-			print("[INFO] correct estimate :" + str(iid))
+			#print("[INFO] correct estimate :" + str(iid))
 		else:
 			error_instance_ids.append(iid)
-			print("[INFO] error estimate :" + str(iid))
+			#print("[INFO] error estimate :" + str(iid))
 
 	print("================== test finish =================")
 	print("Accuracy : " + str(len(correct_instance_ids) / len(test_set)))
@@ -177,29 +177,33 @@ if __name__ == '__main__':
 	with open(classes_list_file, 'rb') as clf:
 		classes_list = pickle.load(clf)
 
-	# instance_chunks = chunks(list(label_map.keys()), 10)
-	# test_set = instance_chunks[9]
-	# for i in range(0, 9):
-	# 	training_set = training_set + instance_chunks[i]
+
+
 	instance_list = list(label_map.keys())
+	size = math.ceil(len(instance_list) / 5)
+	chunks = []
 
-	flag = math.ceil(len(instance_list) / 10)
-	print("[INFO] test set size :" + str(flag))
-	test_set = instance_list[: flag]
-	training_set = instance_list[flag :]
+	for c in range(0, 4):
+		subset = instance_list[ c * size : c * size + size]
+		chunks.append(subset)
+	# last chunk
+	subset = instance_list[4 * size :]
+	chunks.append(subset)
 
-	print("[INFO] start training...")
-	naive_bayes(training_set, test_set)
+	# cross validation
+	for i in range(0, 5):
+		# build test set & training set
+		test_set = chunks[i]
+		training_set = []
+		for j in range(0, 5):
+			if j != i:
+				training_set = training_set + chunks[j]
 
-	# # 10 corss validation
-	# for chunk in range(0, 10):
-	# 	test_set = instance_chunks[chunk]
-	# 	training_set = []
-	# 	for i in range(0, 10):
-	# 		if i != chunk:
-	# 			training_set = training_set + instance_chunks[i]
-	# 	naive_bayes(training_set, test_set)
-
+		# training
+		print("[INFO] training set size :" + str(len(training_set)))
+		print("[INFO] test set size :" + str(len(test_set)))
+		print("[INFO] start training...")
+		naive_bayes(training_set, test_set)
 
 
 

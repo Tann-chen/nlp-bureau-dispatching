@@ -20,8 +20,8 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "testset_with_label.csv"
-source_file = open(file_path, 'r')  # encoding='gb18030'
+file_path = "4w_trainset.csv"
+source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
 reader = csv.reader(source_file)
 
 
@@ -43,7 +43,7 @@ fourth_class_lst = []
 
 for row in reader:
 	instance_id = row[0]
-	label = row[10]
+	label = row[9]
 	content = row[6]
 
 	class_1 = row[2]
@@ -51,7 +51,7 @@ for row in reader:
 	class_3 = row[4]
 	class_4 = row[5]
 
-	if len(instance_id.strip()) == 0:
+	if instance_id.strip() == "ID":
 		continue
 
 	# collect classes

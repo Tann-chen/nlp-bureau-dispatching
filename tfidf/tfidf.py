@@ -75,11 +75,9 @@ if __name__ == '__main__':
 	
 
 	# test
-	for i in  range(0, 100):
-		start = time.time()
-		result  = get_instance_tfidf_vector("113508", True)
-		end = time.time()
-		print(end - start)
+	result  = get_instance_tfidf_vector("197", True)
+	print(result)
+		
 	
 
 

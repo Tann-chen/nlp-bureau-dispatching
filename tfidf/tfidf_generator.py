@@ -35,7 +35,7 @@ def count_token_frequency(iid, inverse_index_value):
 
 
 
-file_path = "testset.csv"
+file_path = "4w_trainset.csv"
 source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
 reader = csv.reader(source_file)
 
@@ -45,6 +45,7 @@ regexp_punct = re.compile("^[\s+\!\/_,$%^*(+\"\')]+|[:：+——()?【】“”�
 
 stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局", "内容", "工单", "问题"]
 NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
+
 inverse_index = {}
 label_map = {}
 instance_tokens = {}
@@ -65,7 +66,7 @@ for row in reader:
 	class_3 = row[4]
 	class_4 = row[5]
 
-	if len(instance_id.strip()) == 0:
+	if instance_id.strip() == "ID":  # rm title
 		continue
 
 	# collect classes
