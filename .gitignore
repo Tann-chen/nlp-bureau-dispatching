@@ -2,13 +2,14 @@
 **.pages
 **.txt
 **.pickle
+**.out
 
 # COMPILED
 **/__pycache__/**
 
 # EXCLUSIVE
 !**/data/**
-!**/tfidf/**
+!**/tfidf/**.pickle
 
 # ENV
 .idea
