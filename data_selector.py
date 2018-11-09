@@ -9,8 +9,8 @@ import pickle
 from bs4 import BeautifulSoup
 
 
-original_file_path = "original_trainingset.csv"
-target_file_path = "4w_trainset.csv"
+original_file_path = "original_testset.csv"
+target_file_path = "4k_testset.csv"
 
 global agency_class
 
@@ -129,7 +129,9 @@ if __name__ == '__main__':
         invalid_agency = ["其他单位", "省外单位", "除海口外的市县", "无效归属", "省级单位", "处置单位"]
 
         docu_id = -1
-        required_num = 40000
+        required_num = 4000
+        #
+        label_count = [0] * 5
 
         for row in reader:
             docu_id += 1
@@ -147,6 +149,12 @@ if __name__ == '__main__':
 
             if label == -1:
                 continue
+
+            # 
+            if label_count[int(label)] > 1000:
+                continue 
+            #
+            label_count[int(label)] = label_count[int(label)] + 1
 
             new_list = []
             new_list.append(docu_id)
