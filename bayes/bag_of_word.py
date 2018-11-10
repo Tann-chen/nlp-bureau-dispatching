@@ -20,8 +20,8 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "4w_trainset.csv"
-source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
+file_path = "4w_trainset_new_label.csv"
+source_file = open(file_path, 'r', encoding='gb18030')
 reader = csv.reader(source_file)
 
 
@@ -31,6 +31,7 @@ regexp_punct = re.compile("^[\s+\!\/_,$%^*(+\"\')]+|[:：+——()?【】“”�
 
 stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局", "内容", "工单", "问题"]
 NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
+
 inverse_index = {}
 label_map = {}
 instance_tokens = {}

@@ -10,7 +10,7 @@ label_file = "instance_label.pickle"
 instance_tokens_file = "instance_tokens.pickle"
 instance_classes_file = "instance_classes.pickle"
 classes_list_file = "classes_list.pickle"
-IF_BUILD = True
+IF_BUILD = False
 
 global inverse_index
 global label_map
@@ -45,9 +45,11 @@ def naive_bayes(training_set, test_set):
 
 	print("[INFO] start calculating F(xi,ai)...")
 
+	#----------------------------------------------
 	if IF_BUILD:
 		with open('agency_freq.pickle', 'wb') as f:
 			pickle.dump(agency_freq, f, pickle.HIGHEST_PROTOCOL)
+	#----------------------------------------------
 
 	# count the frequency of token in the instance belonging to the agency
 	# P(xi|A) = freq of token in instance belonging to the agency + 1 / num of instance belonging to the agency + 2
@@ -75,10 +77,11 @@ def naive_bayes(training_set, test_set):
 
 		idx_token = idx_token + 1
 
+	#------------------------------------------------------
 	if IF_BUILD:
 		with open('token_agency_freq.pickle', 'wb') as f:
 			pickle.dump(token_agency_freq, f, pickle.HIGHEST_PROTOCOL)
-
+	#------------------------------------------------------
 
 	# count the frequency of classes value in class1, class2, class3, class4 for each agency
 	classes_agency_freq = []
@@ -102,10 +105,11 @@ def naive_bayes(training_set, test_set):
 			class_val = classes_list[class_idx][class_val_index]
 			classes_agency_freq[idx_agency][class_idx][class_val] = classes_agency_freq[idx_agency][class_idx][class_val] + 1
 
-
+	#------------------------------------------------------
 	if IF_BUILD:
 		with open('classes_agency_freq.pickle', 'wb') as f:
 			pickle.dump(classes_agency_freq, f, pickle.HIGHEST_PROTOCOL)
+	#-------------------------------------------------------
 
 	print("[INFO] finish training...")
 
@@ -196,23 +200,25 @@ if __name__ == '__main__':
 		classes_list = pickle.load(clf)
 
 
-
 	instance_list = list(label_map.keys())
-	test_set = []
-	naive_bayes(instance_list, test_set)
+	
+	# testing
+	# test_set = []
+	# naive_bayes(instance_list, test_set)
 
 
-	# size = math.ceil(len(instance_list) / 5)
-	# chunks = []
+	# 5-cross validation
+	size = math.ceil(len(instance_list) / 5)
+	chunks = []
 
-	# for c in range(0, 4):
-	# 	subset = instance_list[ c * size : c * size + size]
-	# 	chunks.append(subset)
-	# # last chunk
-	# subset = instance_list[4 * size :]
-	# chunks.append(subset)
+	for c in range(0, 4):
+		subset = instance_list[ c * size : c * size + size]
+		chunks.append(subset)
+	# last chunk
+	subset = instance_list[4 * size :]
+	chunks.append(subset)
 
-	# # cross validation
+	# cross validation
 	# for i in range(0, 5):
 	# 	# build test set & training set
 	# 	test_set = chunks[i]
@@ -226,5 +232,14 @@ if __name__ == '__main__':
 	# 	print("[INFO] test set size :" + str(len(test_set)))
 	# 	print("[INFO] start training...")
 	# 	naive_bayes(training_set, test_set)
+
+
+	# one try
+	test_set = chunks[4]
+	training_set = chunks[0] + chunks[1] + chunks[2] + chunks[3]
+	print("[INFO] training set size :" + str(len(training_set)))
+	print("[INFO] test set size :" + str(len(test_set)))
+	print("[INFO] start training...")
+	naive_bayes(training_set, test_set)
 
 
