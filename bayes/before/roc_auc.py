@@ -1,8 +1,10 @@
 import os
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
+import math
+
 from sklearn.metrics import roc_curve, auc
+#import matplotlib.pyplot as plt
 
 global inverse_index
 global label_map
@@ -17,13 +19,20 @@ instance_classes_file = "instance_classes.pickle"
 classes_list_file = "classes_list.pickle"
 
 
+def index_of_agency(agency_name, agency_lst):
+	for index in range(0, len(agency_lst)):
+		if agency_lst[index] == agency_name:
+			break
+	return index
+
+
 def get_estimated_postive_poss(training_set, test_set):
 	# count frequency of agency & num_instance
 	# prob_agency = freq / num_instance
 	num_instance = len(training_set)
 	agency_freq = {}
 
-	print("[INFO] start calculating F(ai)...")
+	#print("[INFO] start calculating F(ai)...")
 	for iid, c in label_map.items():
 		if iid not in training_set:
 			continue
@@ -33,7 +42,8 @@ def get_estimated_postive_poss(training_set, test_set):
 		else:
 			agency_freq[c] = agency_freq[c] + 1
 
-	print("[INFO] start calculating F(xi,ai)...")
+	#print("[INFO] start calculating F(xi,ai)...")
+
 	# count the frequency of token in the instance belonging to the agency
 	# P(xi|A) = freq of token in instance belonging to the agency + 1 / num of instance belonging to the agency + 2
 	token_agency_freq = []
@@ -82,63 +92,44 @@ def get_estimated_postive_poss(training_set, test_set):
 			class_val = classes_list[class_idx][class_val_index]
 			classes_agency_freq[idx_agency][class_idx][class_val] = classes_agency_freq[idx_agency][class_idx][class_val] + 1
 
-	print("[INFO] finish training...")
 
-	# calculate positive possibility
+	print("[INFO] start calculating y_socre...")
+	# y_score is possibility of positive class
 
 	y_score = []
 	y_label = []
 
 	for iid in test_set:
-		tokens = instance_tokens[iid]
-		
-		# calculate possibility for every agency
-		# only can learn from the agencies appeared in test set		
-		agency_possible = [1] * len(agency_lst)
+		positive_poss = 0
 
-		# calculate p(ai)
-		agency_idx = 0
-		for freq in agency_freq.values():
-			agency_possible[agency_idx] = agency_possible[agency_idx] + math.log10(freq / num_instance)
-			agency_idx = agency_idx + 1
-
+		#calculate p(1)
+		positive_poss += math.log(agency_freq[1] / num_instance)
 
 		# calculate tokens
-		for aid in range(0, len(agency_lst)):
-			freq_agenc = agency_freq[agency_lst[aid]]
+		tokens = instance_tokens[iid]
+		positive_label_index = index_of_agency(1, agency_lst)
+		freq_agenc = agency_freq[1]
 
-			for tid in range(0, len(token_lst)):
-				if token_lst[tid] in tokens:
-					freq_agenc_token = token_agency_freq[aid][tid]
-				else:
-					freq_agenc_token = freq_agenc - token_agency_freq[aid][tid]
+		for tid in range(0 , len(token_lst)):
+			if token_lst[tid] in tokens:
+				freq_agenc_token = token_agency_freq[positive_label_index][tid]
+			else:
+				freq_agenc_token = freq_agenc - token_agency_freq[positive_label_index][tid]
 
-				agency_possible[aid] = agency_possible[aid] + math.log10( (freq_agenc_token + 1) / (freq_agenc + 2) ) # smooth
-
+			positive_poss += math.log((freq_agenc_token + 1) / (freq_agenc + 2))  # smooth
 
 		# calculate classes
 		class_values = instance_classes[iid]
 		for class_idx in range(0, 4):
 			class_val_index = class_values[class_idx]
 			class_val = classes_list[class_idx][class_val_index]
+			positive_poss += math.log( (classes_agency_freq[positive_label_index][class_idx][class_val] + 1) / (freq_agenc + 2) )
 
-			for aid in range(0, len(agency_lst)):
-				freq_agenc = agency_freq[agency_lst[aid]]
-				agency_possible[aid] = agency_possible[aid] + math.log10( (classes_agency_freq[aid][class_idx][class_val] + 1) / (freq_agenc + 2) )
-
-		# get postive possibility
-		positive_poss = 0
-		if agency_lst[0] == 1:
-			positive_poss = agency_possible[0] 
-		elif agency_lst[1] == 1:
-			positive_poss = agency_possible[1]
-		else:
-			print("[ERROR]")
-
-		y_score.append(positive_poss)
+		y_score.append(math.exp(positive_poss))
 		y_label.append(label_map[iid])
 
 	return y_score, y_label
+
 
 
 if __name__ == '__main__':
@@ -146,7 +137,7 @@ if __name__ == '__main__':
 		inverse_index = pickle.load(iif)
 
 	with open(label_file, 'rb') as lbf:
-		label_map = pickle.load(lbf)
+		or_label_map = pickle.load(lbf)
 
 	with open(instance_tokens_file, 'rb') as itf:
 		instance_tokens = pickle.load(itf)
@@ -158,9 +149,10 @@ if __name__ == '__main__':
 		classes_list = pickle.load(clf)
 
 
-	instance_list = list(label_map.keys())
-	all_labels = [0, 1, 2, 3, 4]
-	
+	instance_list = list(or_label_map.keys())
+	all_labels = ['0', '1', '2', '3', '4']
+
+
 	size = math.ceil(len(instance_list) / 5)
 	chunks = []
 	for c in range(0, 4):
@@ -171,15 +163,17 @@ if __name__ == '__main__':
 	chunks.append(subset)
 
 	test_set = chunks[4]
-	training_set = chunks[0]
-	#+ chunks[1] + chunks[2] + chunks[3]
-
+	training_set = chunks[0]+ chunks[1] + chunks[2] + chunks[3]
+	
 
 	Y_score = []
 	Y_real = []
+
 	for target_label in all_labels:
 		# one vs rest 	
-		for instance_id, lb in label_map.items():
+		label_map = {}
+
+		for instance_id, lb in or_label_map.items():
 			if lb == target_label:
 				label_map[instance_id] = 1
 			else:
@@ -190,7 +184,16 @@ if __name__ == '__main__':
 		Y_score += y_score 
 		Y_real += y_label
 
+
 	# Compute micro-average ROC curve and ROC area
 	fpr, tpr, _ = roc_curve(Y_real, Y_score)
+
+	with open('fpr.pickle', 'wb') as f:
+		pickle.dump(fpr, f, pickle.HIGHEST_PROTOCOL)
+
+	with open('tpr.pickle', 'wb') as f:
+		pickle.dump(tpr, f, pickle.HIGHEST_PROTOCOL)
+
 	roc_auc = auc(fpr, tpr)
+	print("---------- auc ---------")
 	print(roc_auc)
