@@ -1,33 +1,23 @@
 import os
-import csv
-import math
 import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
 
-# inversed_index and instance_label (baf_of_word.py) are the foundation of the implementaion.
+global inverse_index
+global label_map
+global instance_tokens
+global instance_classes
+global classes_list 
 
 index_file = "bow_inverse_index.pickle"
 label_file = "instance_label.pickle"
 instance_tokens_file = "instance_tokens.pickle"
 instance_classes_file = "instance_classes.pickle"
 classes_list_file = "classes_list.pickle"
-IF_BUILD = False
-
-global inverse_index
-global label_map
-global instance_tokens
-global instance_classes
-global classes_list
 
 
-def index_of_agency(agency_name, agency_lst):
-	for index in range(0, len(agency_lst)):
-		if agency_lst[index] == agency_name:
-			break
-	return index
-
-
-# training_set, test_set : instance ids
-def naive_bayes(training_set, test_set):
+def get_estimated_postive_poss(training_set, test_set):
 	# count frequency of agency & num_instance
 	# prob_agency = freq / num_instance
 	num_instance = len(training_set)
@@ -44,13 +34,6 @@ def naive_bayes(training_set, test_set):
 			agency_freq[c] = agency_freq[c] + 1
 
 	print("[INFO] start calculating F(xi,ai)...")
-
-	#----------------------------------------------
-	if IF_BUILD:
-		with open('agency_freq.pickle', 'wb') as f:
-			pickle.dump(agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#----------------------------------------------
-
 	# count the frequency of token in the instance belonging to the agency
 	# P(xi|A) = freq of token in instance belonging to the agency + 1 / num of instance belonging to the agency + 2
 	token_agency_freq = []
@@ -77,12 +60,6 @@ def naive_bayes(training_set, test_set):
 
 		idx_token = idx_token + 1
 
-	#------------------------------------------------------
-	if IF_BUILD:
-		with open('token_agency_freq.pickle', 'wb') as f:
-			pickle.dump(token_agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#------------------------------------------------------
-
 	# count the frequency of classes value in class1, class2, class3, class4 for each agency
 	classes_agency_freq = []
 	for i in range(0, len(agency_lst)):
@@ -105,22 +82,12 @@ def naive_bayes(training_set, test_set):
 			class_val = classes_list[class_idx][class_val_index]
 			classes_agency_freq[idx_agency][class_idx][class_val] = classes_agency_freq[idx_agency][class_idx][class_val] + 1
 
-	#------------------------------------------------------
-	if IF_BUILD:
-		with open('classes_agency_freq.pickle', 'wb') as f:
-			pickle.dump(classes_agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#-------------------------------------------------------
-
 	print("[INFO] finish training...")
 
-	if IF_BUILD:
-		print("=================== BUILT ====================")
-		return 0
+	# calculate positive possibility
 
-	# testing
-	print("[INFO] start testing...")
-	correct_instance_ids = []
-	error_instance_ids = []
+	y_score = []
+	y_label = []
 
 	for iid in test_set:
 		tokens = instance_tokens[iid]
@@ -159,28 +126,19 @@ def naive_bayes(training_set, test_set):
 				freq_agenc = agency_freq[agency_lst[aid]]
 				agency_possible[aid] = agency_possible[aid] + math.log10( (classes_agency_freq[aid][class_idx][class_val] + 1) / (freq_agenc + 2) )
 
-
-		# get the agency class with max possible
-		max_id = 0 
-		max_val = agency_possible[0]
-
-		for i in range(1, len(agency_possible)):
-			if agency_possible[i] > max_val:
-				max_val = agency_possible[i]
-				max_id = i
-
-		estimate_label = agency_lst[max_id]
-		#print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
-
-		if estimate_label == label_map[iid]:
-			correct_instance_ids.append(iid)
-			#print("[INFO] correct estimate :" + str(iid))
+		# get postive possibility
+		positive_poss = 0
+		if agency_lst[0] == 1:
+			positive_poss = agency_possible[0] 
+		elif agency_lst[1] == 1:
+			positive_poss = agency_possible[1]
 		else:
-			error_instance_ids.append(iid)
-			#print("[INFO] error estimate :" + str(iid))
+			print("[ERROR]")
 
-	print("================== test finish =================")
-	print("Accuracy : " + str(len(correct_instance_ids) / len(test_set)))
+		y_score.append(positive_poss)
+		y_label.append(label_map[iid])
+
+	return y_score, y_label
 
 
 if __name__ == '__main__':
@@ -201,16 +159,10 @@ if __name__ == '__main__':
 
 
 	instance_list = list(label_map.keys())
+	all_labels = [0, 1, 2, 3, 4]
 	
-	# testing
-	# test_set = []
-	# naive_bayes(instance_list, test_set)
-
-
-	# 5-cross validation
 	size = math.ceil(len(instance_list) / 5)
 	chunks = []
-
 	for c in range(0, 4):
 		subset = instance_list[ c * size : c * size + size]
 		chunks.append(subset)
@@ -218,28 +170,27 @@ if __name__ == '__main__':
 	subset = instance_list[4 * size :]
 	chunks.append(subset)
 
-	# cross validation
-	for i in range(0, 5):
-		# build test set & training set
-		test_set = chunks[i]
-		training_set = []
-		for j in range(0, 5):
-			if j != i:
-				training_set = training_set + chunks[j]
-
-		# training
-		print("[INFO] training set size :" + str(len(training_set)))
-		print("[INFO] test set size :" + str(len(test_set)))
-		print("[INFO] start training...")
-		naive_bayes(training_set, test_set)
+	test_set = chunks[4]
+	training_set = chunks[0]
+	#+ chunks[1] + chunks[2] + chunks[3]
 
 
-	# one try
-	# test_set = chunks[4]
-	# training_set = chunks[0] + chunks[1] + chunks[2] + chunks[3]
-	# print("[INFO] training set size :" + str(len(training_set)))
-	# print("[INFO] test set size :" + str(len(test_set)))
-	# print("[INFO] start training...")
-	# naive_bayes(training_set, test_set)
+	Y_score = []
+	Y_real = []
+	for target_label in all_labels:
+		# one vs rest 	
+		for instance_id, lb in label_map.items():
+			if lb == target_label:
+				label_map[instance_id] = 1
+			else:
+				label_map[instance_id] = 0
 
+		# naive bayes to generate estimated possibility of positive class
+		y_score, y_label = get_estimated_postive_poss(training_set, test_set)
+		Y_score += y_score 
+		Y_real += y_label
 
+	# Compute micro-average ROC curve and ROC area
+	fpr, tpr, _ = roc_curve(Y_real, Y_score)
+	roc_auc = auc(fpr, tpr)
+	print(roc_auc)
