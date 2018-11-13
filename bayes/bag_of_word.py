@@ -20,7 +20,7 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "4w_trainset_new_label.csv"
+file_path = "4k_testset_new_label.csv"
 source_file = open(file_path, 'r', encoding='gb18030')
 reader = csv.reader(source_file)
 
@@ -146,19 +146,19 @@ print("totoal dimension :" + str(len(list(inverse_index.keys()))))
 print("total instance :" + str(len(list(instance_tokens.keys()))))
 
 
-with open('bow_inverse_index.pickle', 'wb') as f:
-	pickle.dump(inverse_index, f, pickle.HIGHEST_PROTOCOL)
+# with open('bow_inverse_index.pickle', 'wb') as f:
+# 	pickle.dump(inverse_index, f, pickle.HIGHEST_PROTOCOL)
 
-with open('instance_label.pickle', 'wb') as f:
+with open('testset_instance_label.pickle', 'wb') as f:
 	pickle.dump(label_map, f, pickle.HIGHEST_PROTOCOL)
 
-with open('instance_tokens.pickle', 'wb') as f:
+with open('testset_instance_tokens.pickle', 'wb') as f:
 	pickle.dump(instance_tokens, f, pickle.HIGHEST_PROTOCOL)
 
-with open('instance_classes.pickle', 'wb') as f:
+with open('testset_instance_classes.pickle', 'wb') as f:
 	pickle.dump(instance_classes, f, pickle.HIGHEST_PROTOCOL)
 
-with open('classes_list.pickle', 'wb') as f:
+with open('testset_classes_list.pickle', 'wb') as f:
 	classes_list = []
 	classes_list.append(first_class_lst)
 	classes_list.append(second_class_lst)

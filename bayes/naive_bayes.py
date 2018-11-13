@@ -10,7 +10,7 @@ label_file = "instance_label.pickle"
 instance_tokens_file = "instance_tokens.pickle"
 instance_classes_file = "instance_classes.pickle"
 classes_list_file = "classes_list.pickle"
-IF_BUILD = False
+IF_TEST = True
 
 global inverse_index
 global label_map
@@ -45,12 +45,6 @@ def naive_bayes(training_set, test_set):
 
 	print("[INFO] start calculating F(xi,ai)...")
 
-	#----------------------------------------------
-	if IF_BUILD:
-		with open('agency_freq.pickle', 'wb') as f:
-			pickle.dump(agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#----------------------------------------------
-
 	# count the frequency of token in the instance belonging to the agency
 	# P(xi|A) = freq of token in instance belonging to the agency + 1 / num of instance belonging to the agency + 2
 	token_agency_freq = []
@@ -77,11 +71,6 @@ def naive_bayes(training_set, test_set):
 
 		idx_token = idx_token + 1
 
-	#------------------------------------------------------
-	if IF_BUILD:
-		with open('token_agency_freq.pickle', 'wb') as f:
-			pickle.dump(token_agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#------------------------------------------------------
 
 	# count the frequency of classes value in class1, class2, class3, class4 for each agency
 	classes_agency_freq = []
@@ -105,25 +94,35 @@ def naive_bayes(training_set, test_set):
 			class_val = classes_list[class_idx][class_val_index]
 			classes_agency_freq[idx_agency][class_idx][class_val] = classes_agency_freq[idx_agency][class_idx][class_val] + 1
 
-	#------------------------------------------------------
-	if IF_BUILD:
-		with open('classes_agency_freq.pickle', 'wb') as f:
-			pickle.dump(classes_agency_freq, f, pickle.HIGHEST_PROTOCOL)
-	#-------------------------------------------------------
 
 	print("[INFO] finish training...")
 
-	if IF_BUILD:
-		print("=================== BUILT ====================")
-		return 0
 
-	# testing
-	print("[INFO] start testing...")
+	# testing / validation
+	if IF_TEST:
+		# load test model
+		with open("testset_instance_tokens.pickle", 'rb') as titf:
+			testset_instance_tokens = pickle.load(titf)
+		with open("testset_instance_label.pickle", 'rb') as tlmf:
+			testset_label_map = pickle.load(tlmf)
+		with open("testset_instance_classes.pickle", 'rb') as ticf:
+			testset_instance_classes = pickle.load(ticf)
+		with open("testset_classes_list.pickle", 'rb') as tclf:	
+			testset_classes_list =  pickle.load(tclf)
+			test_set = list(testset_label_map.keys())
+
+
+	print("[INFO] start testing / validation ...")
+
 	correct_instance_ids = []
 	error_instance_ids = []
 
 	for iid in test_set:
-		tokens = instance_tokens[iid]
+
+		if not IF_TEST:
+			tokens = instance_tokens[iid]
+		else:
+			tokens = testset_instance_tokens[iid]
 		
 		# calculate possibility for every agency
 		# only can learn from the agencies appeared in test set		
@@ -150,14 +149,25 @@ def naive_bayes(training_set, test_set):
 
 
 		# calculate classes
-		class_values = instance_classes[iid]
 		for class_idx in range(0, 4):
-			class_val_index = class_values[class_idx]
-			class_val = classes_list[class_idx][class_val_index]
+
+			if not IF_TEST:
+				class_val_index = instance_classes[iid][class_idx]
+				class_val = classes_list[class_idx][class_val_index]
+			else:
+				class_val_index = testset_instance_classes[iid][class_idx]
+				class_val = testset_classes_list[class_idx][class_val_index]
+
 
 			for aid in range(0, len(agency_lst)):
 				freq_agenc = agency_freq[agency_lst[aid]]
-				agency_possible[aid] = agency_possible[aid] + math.log10( (classes_agency_freq[aid][class_idx][class_val] + 1) / (freq_agenc + 2) )
+
+				if class_val in classes_list[class_idx]:  # must be true in validation, may be false in testing 
+					freq_classes_agency = classes_agency_freq[aid][class_idx][class_val]
+				else:  # if a new class tag in new, class agency freq should be 0, but actually it does not work, for all agency plus same value
+					freq_classes_agency = 0
+
+				agency_possible[aid] = agency_possible[aid] + math.log10( (freq_classes_agency + 1) / (freq_agenc + 2) )
 
 
 		# get the agency class with max possible
@@ -170,14 +180,19 @@ def naive_bayes(training_set, test_set):
 				max_id = i
 
 		estimate_label = agency_lst[max_id]
-		#print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
+		print("[INFO] estimate : " + str(iid) + " is " +  estimate_label)
 
-		if estimate_label == label_map[iid]:
+		if not IF_TEST:
+			real_label = label_map[iid]
+		else:
+			real_label = testset_label_map[iid]
+
+		if estimate_label == real_label:
 			correct_instance_ids.append(iid)
-			#print("[INFO] correct estimate :" + str(iid))
+			print("[INFO] correct estimate :" + str(iid))
 		else:
 			error_instance_ids.append(iid)
-			#print("[INFO] error estimate :" + str(iid))
+			print("[INFO] error estimate :" + str(iid))
 
 	print("================== test finish =================")
 	print("Accuracy : " + str(len(correct_instance_ids) / len(test_set)))
@@ -203,35 +218,34 @@ if __name__ == '__main__':
 	instance_list = list(label_map.keys())
 	
 	# testing
-	# test_set = []
-	# naive_bayes(instance_list, test_set)
+	naive_bayes(instance_list, None)
 
 
 	# 5-cross validation
-	size = math.ceil(len(instance_list) / 5)
-	chunks = []
+	# size = math.ceil(len(instance_list) / 5)
+	# chunks = []
 
-	for c in range(0, 4):
-		subset = instance_list[ c * size : c * size + size]
-		chunks.append(subset)
-	# last chunk
-	subset = instance_list[4 * size :]
-	chunks.append(subset)
+	# for c in range(0, 4):
+	# 	subset = instance_list[ c * size : c * size + size]
+	# 	chunks.append(subset)
+	# # last chunk
+	# subset = instance_list[4 * size :]
+	# chunks.append(subset)
 
-	# cross validation
-	for i in range(0, 5):
-		# build test set & training set
-		test_set = chunks[i]
-		training_set = []
-		for j in range(0, 5):
-			if j != i:
-				training_set = training_set + chunks[j]
+	# # cross validation
+	# for i in range(0, 5):
+	# 	# build test set & training set
+	# 	test_set = chunks[i]
+	# 	training_set = []
+	# 	for j in range(0, 5):
+	# 		if j != i:
+	# 			training_set = training_set + chunks[j]
 
-		# training
-		print("[INFO] training set size :" + str(len(training_set)))
-		print("[INFO] test set size :" + str(len(test_set)))
-		print("[INFO] start training...")
-		naive_bayes(training_set, test_set)
+	# 	# training
+	# 	print("[INFO] training set size :" + str(len(training_set)))
+	# 	print("[INFO] test set size :" + str(len(test_set)))
+	# 	print("[INFO] start training...")
+	# 	naive_bayes(training_set, test_set)
 
 
 	# one try

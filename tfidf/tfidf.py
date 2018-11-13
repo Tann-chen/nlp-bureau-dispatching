@@ -71,18 +71,6 @@ def get_instance_tfidf_vector(instance_id, if_shuffled):
 
 
 
-if __name__ == '__main__':
-	
-
-	# test
-	result  = get_instance_tfidf_vector("197", True)
-	print(result)
-		
-	
-
-
-
-
 
 
 

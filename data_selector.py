@@ -6,11 +6,12 @@ import traceback
 import random
 import requests
 import pickle
+import math
 from bs4 import BeautifulSoup
 
 
 original_file_path = "original_testset.csv"
-target_file_path = "4k_testset.csv"
+target_file_path = "4k_testset_800.csv"
 
 global agency_class
 
@@ -105,7 +106,7 @@ def hgdProcess(sentence):
 
 
 if __name__ == '__main__':
-    with open("labeled_agency.txt", 'r') as file:
+    with open("label.conf", 'r') as file:
         labeled_agencies = file.read()
         labeled_agencies_list = labeled_agencies.split('\n')
         agency_class = []
@@ -136,7 +137,7 @@ if __name__ == '__main__':
         for row in reader:
             docu_id += 1
 
-            if random.randint(1, 10) > 7:
+            if random.randint(1, 10) > 9:
                 print("[INFO] pass id :" + str(docu_id))
                 continue
 
@@ -151,7 +152,8 @@ if __name__ == '__main__':
                 continue
 
             # 
-            if label_count[int(label)] > 1000:
+            if label_count[int(label)] >= 800:
+                print("[INFO] some label data overflow :" + str(label))
                 continue 
             #
             label_count[int(label)] = label_count[int(label)] + 1
