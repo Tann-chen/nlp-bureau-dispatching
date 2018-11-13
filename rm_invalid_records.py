@@ -5,7 +5,7 @@ import traceback
 
 source_file_path = "top5000.csv"
 target_file_path = "valid5000.csv"
-invalid_handlers_lst = ['其他单位', '省外单位', '省级单位', '处置单位']
+invalid_handlers_lst = ['其他单位', '省外单位', '省级单位', '处置单位', '无效归属', '除海口外的市县']
 counter = 0
 qita_counter = 0
 null_counter = 0
