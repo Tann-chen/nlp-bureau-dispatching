@@ -7,11 +7,12 @@ import pickle
 import requests
 from bs4 import BeautifulSoup
 
-
 global inverse_index
 
 with open("bow_inverse_index.pickle", 'rb') as iif:
 	inverse_index = pickle.load(iif)
+
+print("[INFO] bag of word model loaded ...")
 
 
 def get_bag_of_word_vector(instance_id):

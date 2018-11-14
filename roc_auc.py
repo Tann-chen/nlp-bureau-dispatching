@@ -18,8 +18,15 @@ X = iris.data
 y = iris.target
 
 
+# print(len(X))
+# print(len(y))
+# print("===================")
+
+
 # Binarize the output
 y = label_binarize(y, classes=[0, 1, 2])
+# print(len(y))
+
 n_classes = y.shape[1]
 
 
@@ -28,12 +35,15 @@ random_state = np.random.RandomState(0)
 n_samples, n_features = X.shape
 X = np.c_[X, random_state.randn(n_samples, 200 * n_features)]
 
+# print(X)
+# print(len(X))
+
 # shuffle and split training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.5, random_state=0)
 
 
 print(X_test)
-print(y_test)
+print(y_train)
 
 # Learn to predict each class against the other
 classifier = OneVsRestClassifier(svm.SVC(kernel='linear', probability=True, random_state=random_state))
@@ -50,7 +60,7 @@ for i in range(n_classes):
 
 # Compute micro-average ROC curve and ROC area
 fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
-print(y_test.ravel())
-print(y_score.ravel())
+# print(y_test.ravel())
+# print(y_score.ravel())
 
 roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
