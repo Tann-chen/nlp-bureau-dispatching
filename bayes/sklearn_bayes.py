@@ -3,12 +3,15 @@ import numpy as np
 import math
 
 from bow.bow import get_bag_of_word_vector
+from sklearn.metrics import roc_curve, auc
+from scipy import interp
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import label_binarize
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from itertools import cycle
 
 
 global instance_labels
@@ -81,7 +84,7 @@ def grid_search(train_set):
 def roc_auc(data_set):
 	X, Y = get_instances_vector_label(data_set)
 	Y = label_binarize(Y, classes=[0, 1, 2, 3, 4])
-	n_classes = y.shape[1]
+	n_classes = Y.shape[1]
 
 	X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
@@ -92,11 +95,11 @@ def roc_auc(data_set):
 	tpr = dict()
 	roc_auc = dict()
 	for i in range(n_classes):
-		fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
+		fpr[i], tpr[i], _ = roc_curve(Y_test[:, i], Y_score[:, i])
 		roc_auc[i] = auc(fpr[i], tpr[i])
 
 	# Compute micro-average ROC curve and ROC area
-	fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
+	fpr["micro"], tpr["micro"], _ = roc_curve(Y_test.ravel(), Y_score.ravel())
 	roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
 	# Compute macro-average ROC curve and ROC area
@@ -128,13 +131,13 @@ def roc_auc(data_set):
 	               ''.format(roc_auc["macro"]),
 	         color='navy', linestyle=':', linewidth=4)
 
-	colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
-	for i, color in zip(range(n_classes), colors):
-	    plt.plot(fpr[i], tpr[i], color=color, lw=lw,
-	             label='ROC curve of class {0} (area = {1:0.2f})'
-	             ''.format(i, roc_auc[i]))
+	# colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
+	# for i, color in zip(range(n_classes), colors):
+	#     plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+	#              label='ROC curve of class {0} (area = {1:0.2f})'
+	#              ''.format(i, roc_auc[i]))
 
-	plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+	# plt.plot([0, 1], [0, 1], 'k--', lw=lw)
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
 	plt.xlabel('False Positive Rate')
@@ -165,25 +168,25 @@ if __name__ == '__main__':
 
 
 	# cross validation
-	for i in range(0, 5):
-		# build test set & training set
-		test_set = chunks[i]
-		training_set = list()
-		for j in range(0, 5):
-			if j != i:
-				training_set = training_set + chunks[j]
+	# for i in range(0, 5):
+	# 	# build test set & training set
+	# 	test_set = chunks[i]
+	# 	training_set = list()
+	# 	for j in range(0, 5):
+	# 		if j != i:
+	# 			training_set = training_set + chunks[j]
 
-		# training
-		print("[INFO] training set size :" + str(len(training_set)))
-		print("[INFO] test set size :" + str(len(test_set)))
+	# 	# training
+	# 	print("[INFO] training set size :" + str(len(training_set)))
+	# 	print("[INFO] test set size :" + str(len(test_set)))
 		
-		nb_classifier = BernoulliNB(alpha=1, fit_prior=True)
-		X_train, Y_train = get_instances_vector_label(training_set)
-		X_test, Y_test = get_instances_vector_label(test_set)
+	# 	nb_classifier = BernoulliNB(alpha=1, fit_prior=True)
+	# 	X_train, Y_train = get_instances_vector_label(training_set)
+	# 	X_test, Y_test = get_instances_vector_label(test_set)
 
-		nb_classifier.fit(X_train, Y_train)
-		Y_pred = nb_classifier.predict(X_test)
-		validate(Y_pred, Y_test)
+	# 	nb_classifier.fit(X_train, Y_train)
+	# 	Y_pred = nb_classifier.predict(X_test)
+	# 	validate(Y_pred, Y_test)
 
 
 	# one run
@@ -203,8 +206,7 @@ if __name__ == '__main__':
 	# validate(Y_pred, Y_test)
 
 	# roc auc
-	data_set = chunks[0]
-	roc_auc(data_set)
+	roc_auc(instance_list)
 
 
 
