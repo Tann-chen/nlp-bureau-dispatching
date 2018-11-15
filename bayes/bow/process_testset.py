@@ -8,39 +8,23 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def get_class_label(class_name, class_lst):
-	index = -1
-	for c in class_lst:
-		index = index + 1
-		if c == class_name:
-			return index
-	# if never found
-	class_lst.append(class_name)
-	return index + 1
+
+file_path = "../../data/4k_testset.csv"
+output_file_prefix = "testset_"
 
 
-
-file_path = "../4w_trainset.csv"
 source_file = open(file_path, 'r', encoding='gb18030')
 reader = csv.reader(source_file)
-
-
 regexp_number = re.compile('^[0-9a-zA-Z]*$')
 regexp_punct = re.compile("^[\s+\!\/_,$%^*(+\"\')]+|[:：+——()?【】“”！，。？、~@#￥%……&*（）. 〉《 》〔〕；～ ％]$")
-
-
 stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局", "内容", "工单", "问题"]
 NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
 
-inverse_index = {}
-label_map = {}
-instance_tokens = {}
-instance_classes = {}
 
-first_class_lst = []
-second_class_lst = []
-third_class_lst = []
-fourth_class_lst = []
+instance_labels = dict()
+instance_tokens = dict()
+instance_classes = dict()  # here is diff with trainset(class_index), here is real class
+
 
 for row in reader:
 	instance_id = row[0]
@@ -57,21 +41,13 @@ for row in reader:
 
 	# collect classes
 	class_labels = []
-
-	class_1_label = get_class_label(class_1, first_class_lst)
-	class_labels.append(class_1_label)
-
-	class_2_label = get_class_label(class_2, second_class_lst)
-	class_labels.append(class_2_label)
-
-	class_3_label = get_class_label(class_3, third_class_lst)
-	class_labels.append(class_3_label)
-
-	class_4_label = get_class_label(class_4, fourth_class_lst)
-	class_labels.append(class_4_label)
+	class_labels.append(class_1)
+	class_labels.append(class_2)
+	class_labels.append(class_3)
+	class_labels.append(class_4)
 
 	# build request
-	payload = {}
+	payload = dict()
 	payload['s'] = content
 	payload['f'] = 'xml'
 	payload['t'] = 'ner'
@@ -79,8 +55,8 @@ for row in reader:
 	soup = BeautifulSoup(response.text, 'html.parser')
 	word_tags = soup.findAll('word')
 	# parse and extract features
-	buffers = []
-	tokens = []
+	buffers = list()
+	tokens = list()
 
 	for w in word_tags:
 		token = w['cont']
@@ -121,42 +97,27 @@ for row in reader:
 
 		# build inverse index
 		if pos not in ('Ni', 'n', 'j'):  # Ns exclusive
-			print("exclusive :" + token + ":" + pos)   # print, but throw out
+			print("[INFO] exclusive :" + token + ":" + pos)   # print, but throw out
 
-		elif token in inverse_index.keys():
-			instances_set = inverse_index[token]
-			instances_set.add(instance_id)
-			tokens.append(token)
-			print("add :" + token)
 		else:
-			new_set = set()
-			new_set.add(instance_id)
-			inverse_index[token] = new_set
 			tokens.append(token)
-			print("add :" + token)
+			print("[INFO] add :" + token)
 
-	label_map[instance_id] = label
+	instance_labels[instance_id] = label
 	instance_tokens[instance_id] = tokens
 	instance_classes[instance_id] = class_labels
 	print("-----------------------------")
 
 
 print("================ END =================")
-print("totoal dimension :" + str(len(list(inverse_index.keys()))))
 print("total instance :" + str(len(list(instance_tokens.keys()))))
 
 
-with open('bow_inverse_index.pickle', 'wb') as f:
-	pickle.dump(inverse_index, f, pickle.HIGHEST_PROTOCOL)
+with open(output_file_prefix + 'bow_instance_label.pickle', 'wb') as f:
+	pickle.dump(instance_labels, f, pickle.HIGHEST_PROTOCOL)
 
-with open('bow_instance_label.pickle', 'wb') as f:
-	pickle.dump(label_map, f, pickle.HIGHEST_PROTOCOL)
+with open(output_file_prefix + 'bow_instance_tokens.pickle', 'wb') as f:
+	pickle.dump(instance_tokens, f, pickle.HIGHEST_PROTOCOL)
 
-with open('bow_instance_classes.pickle', 'wb') as f:
+with open(output_file_prefix + 'bow_instance_classes.pickle', 'wb') as f:
 	pickle.dump(instance_classes, f, pickle.HIGHEST_PROTOCOL)
-
-print("----------------Length of classes ------------------------")
-print("class 1 :" + str(len(first_class_lst)))
-print("class 2 :" + str(len(second_class_lst)))
-print("class 3 :" + str(len(third_class_lst)))
-print("class 4 :" + str(len(fourth_class_lst)))

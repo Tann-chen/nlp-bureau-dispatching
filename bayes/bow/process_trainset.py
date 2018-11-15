@@ -20,27 +20,28 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "4w_trainset.csv"
+file_path = "../../data/4w_trainset.csv"
+output_file_prefix = "trainset_"
+
+
 source_file = open(file_path, 'r', encoding='gb18030')
 reader = csv.reader(source_file)
 
-
 regexp_number = re.compile('^[0-9a-zA-Z]*$')
 regexp_punct = re.compile("^[\s+\!\/_,$%^*(+\"\')]+|[:：+——()?【】“”！，。？、~@#￥%……&*（）. 〉《 》〔〕；～ ％]$")
-
-
 stop_words_lst = ["市民", "来电", "咨询", "反映", "职能", "规定", "局", "内容", "工单", "问题"]
 NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
 
-inverse_index = {}
-label_map = {}
-instance_tokens = {}
-instance_classes = {}
 
-first_class_lst = []
-second_class_lst = []
-third_class_lst = []
-fourth_class_lst = []
+inverse_index = dict()
+instance_labels = dict()
+instance_tokens = dict()
+instance_classes = dict()
+
+first_class_lst = list()
+second_class_lst = list()
+third_class_lst = list()
+fourth_class_lst = list()
 
 for row in reader:
 	instance_id = row[0]
@@ -70,8 +71,9 @@ for row in reader:
 	class_4_label = get_class_label(class_4, fourth_class_lst)
 	class_labels.append(class_4_label)
 
+
 	# build request
-	payload = {}
+	payload = dict()
 	payload['s'] = content
 	payload['f'] = 'xml'
 	payload['t'] = 'ner'
@@ -79,8 +81,8 @@ for row in reader:
 	soup = BeautifulSoup(response.text, 'html.parser')
 	word_tags = soup.findAll('word')
 	# parse and extract features
-	buffers = []
-	tokens = []
+	buffers = list()
+	tokens = list()
 
 	for w in word_tags:
 		token = w['cont']
@@ -121,21 +123,21 @@ for row in reader:
 
 		# build inverse index
 		if pos not in ('Ni', 'n', 'j'):  # Ns exclusive
-			print("exclusive :" + token + ":" + pos)   # print, but throw out
+			print("[INFO] exclusive :" + token + ":" + pos)   # print, but throw out
 
 		elif token in inverse_index.keys():
 			instances_set = inverse_index[token]
 			instances_set.add(instance_id)
 			tokens.append(token)
-			print("add :" + token)
+			print("[INFO] add :" + token)
 		else:
 			new_set = set()
 			new_set.add(instance_id)
 			inverse_index[token] = new_set
 			tokens.append(token)
-			print("add :" + token)
+			print("[INFO] add :" + token)
 
-	label_map[instance_id] = label
+	instance_labels[instance_id] = label
 	instance_tokens[instance_id] = tokens
 	instance_classes[instance_id] = class_labels
 	print("-----------------------------")
@@ -146,11 +148,20 @@ print("totoal dimension :" + str(len(list(inverse_index.keys()))))
 print("total instance :" + str(len(list(instance_tokens.keys()))))
 
 
-with open('bow_inverse_index.pickle', 'wb') as f:
+with open(output_file_prefix + 'bow_inverse_index.pickle', 'wb') as f:
 	pickle.dump(inverse_index, f, pickle.HIGHEST_PROTOCOL)
 
-with open('bow_instance_label.pickle', 'wb') as f:
-	pickle.dump(label_map, f, pickle.HIGHEST_PROTOCOL)
+with open(output_file_prefix + 'bow_instance_label.pickle', 'wb') as f:
+	pickle.dump(instance_labels, f, pickle.HIGHEST_PROTOCOL)
 
-with open('bow_instance_classes.pickle', 'wb') as f:
+with open(output_file_prefix + 'bow_instance_classes.pickle', 'wb') as f:
 	pickle.dump(instance_classes, f, pickle.HIGHEST_PROTOCOL)
+
+# dump classes list
+with open(output_file_prefix + 'bow_classes_list.pickle', 'wb') as f:
+	classes_list = list()
+	classes_list.append(first_class_lst)
+	classes_list.append(second_class_lst)
+	classes_list.append(third_class_lst)
+	classes_list.append(fourth_class_lst)
+	pickle.dump(classes_list, f, pickle.HIGHEST_PROTOCOL)

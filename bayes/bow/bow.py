@@ -7,12 +7,15 @@ import pickle
 import requests
 from bs4 import BeautifulSoup
 
-global inverse_index
 
-with open("bow_inverse_index.pickle", 'rb') as iif:
+global inverse_index
+global testset_instance_tokens
+
+with open("trainset_bow_inverse_index.pickle", 'rb') as iif:
 	inverse_index = pickle.load(iif)
 
-print("[INFO] bag of word model loaded ...")
+with open("testset_bow_instance_tokens.pickle", 'rb') as itf:
+	testset_instance_tokens = pickle.load(itf)
 
 
 def get_bag_of_word_vector(instance_id):
@@ -25,6 +28,22 @@ def get_bag_of_word_vector(instance_id):
 
 	return vector
 
+
+
+def get_testset_bow_vector(instance_id):
+	if instance_id not in testset_instance_tokens.keys():
+		print("[ERROR] instance id is not invalid")
+	else:	
+		tokens = testset_instance_tokens[instance_id]
+		dimension = list(inverse_index.keys())
+		vector = []
+		for d in dimension:
+			if d in tokens:
+				vector.append(1)
+			else:
+				vector.append(0)
+
+		return vector
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@ import numpy as np
 import math
 
 from bow.bow import get_bag_of_word_vector
+from bow.bow import get_testset_bow_vector
+
 from sklearn.metrics import roc_curve, auc
 from scipy import interp
 from sklearn.naive_bayes import BernoulliNB
@@ -10,21 +12,37 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import label_binarize
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-from itertools import cycle
+# import matplotlib.pyplot as plt
 
 
-global instance_labels
-global instance_classes
+global trainset_instance_labels
+global trainset_instance_classes
+global trainset_classes_list
+global testset_instance_labels
+global testset_instance_classes
 
-with open("bow/bow_instance_label.pickle", 'rb') as ilf:
-	instance_labels = pickle.load(ilf)
 
-with open("bow/bow_instance_classes.pickle", 'rb') as icf:
-	instance_classes = pickle.load(icf)
+with open("bow/trainset_bow_instance_label.pickle", 'rb') as ilf:
+	trainset_instance_labels = pickle.load(ilf)
 
-# max index value in four classes
-max_idx_classes = [66, 211, 799, 867]
+with open("bow/trainset_bow_instance_classes.pickle", 'rb') as icf:
+	trainset_instance_classes = pickle.load(icf)
+
+with open("bow/trainset_bow_classes_list.pickle", 'rb') as clf:
+	trainset_classes_list = pickle.load(clf)
+
+with open("bow/testset_bow_instance_label.pickle", 'rb') as ilf:
+	testset_instance_labels = pickle.load(ilf)
+
+with open("bow/testset_bow_instance_classes.pickle", 'rb') as icf:
+	testset_instance_classes = pickle.load(icf)
+
+
+
+# length of four classes
+length_classes = list()
+for class_list in trainset_classes_list:
+	length_classes.append(len(class_list))
 
 
 def get_instances_vector_label(data_set):
@@ -33,32 +51,61 @@ def get_instances_vector_label(data_set):
 	for iid in data_set:
 		# normalize classes val
 		classes_vec = list()
-		classes_idxes = instance_classes[iid]
+		classes_idxes = trainset_instance_classes[iid]
 		for idx in range(0, 4):
 			class_idx = classes_idxes[idx]
-			dimen = [0] * (max_idx_classes[idx] + 1)
+			dimen = [0] * length_classes[idx]
 			dimen[class_idx] = 1
 			classes_vec += dimen
 
 		bow_vec = get_bag_of_word_vector(iid)
 
 		x = classes_vec + bow_vec
-		y = int(instance_labels[iid])
+		y = int(trainset_instance_labels[iid])
 		X.append(x)
 		Y.append(y)
 
 	return X,Y
 
 
+def get_test_instance_vector_label(test_set):
+	X = list()
+	Y = list()
+	for iid in test_set:
+		# normalize classes val
+		classes_vec = list()
+		for index in range(0, 4):
+			dimen = [0] * length_classes[index]
+			all_classes = trainset_classes_list[index]
+			class_val = testset_instance_classes[iid][index]
+			if class_val in all_classes:
+				dimen_idx = all_classes.index(class_val)
+				dimen[dimen_idx] = 1
+
+			classes_vec += dimen
+
+		# bow_val
+		bow_vec = get_testset_bow_vector(iid)
+
+		x = classes_vec + bow_vec
+		y = int(testset_instance_labels[iid])
+		X.append(x)
+		Y.append(y)
+
+	return X, Y
+
+
 def validate(Y_pred, Y_true):
 	correct_count = 0
 	for idx in range(0, len(Y_true)):
-		if Y_pred[idx] == Y_true[idx]:
-			correct_count += 1
-			print("[INFO] Estimate correct: estimate = real - " + str(Y_true[idx]))
-		else:
-			print("[INFO] Estimate error: estimate - " + str(Y_pred[idx]) + " | real - " + str(Y_true[idx]))
+		y_true = Y_true[idx]
+		y_pred = Y_pred[idx]
 
+		print("[REPORT] true_label : " + str(y_true) + " | pred_label : " + str(y_pred) )
+		
+		if y_true == y_pred:
+			correct_count += 1
+		
 	print("------------ Accuracy : " + str(correct_count / len(Y_true)) + "------------")
 
 
@@ -131,13 +178,6 @@ def roc_auc(data_set):
 	               ''.format(roc_auc["macro"]),
 	         color='navy', linestyle=':', linewidth=4)
 
-	# colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
-	# for i, color in zip(range(n_classes), colors):
-	#     plt.plot(fpr[i], tpr[i], color=color, lw=lw,
-	#              label='ROC curve of class {0} (area = {1:0.2f})'
-	#              ''.format(i, roc_auc[i]))
-
-	# plt.plot([0, 1], [0, 1], 'k--', lw=lw)
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
 	plt.xlabel('False Positive Rate')
@@ -152,19 +192,30 @@ def roc_auc(data_set):
 
 
 if __name__ == '__main__':
-	instance_list = list(instance_labels.keys())
+	instance_list = list(trainset_instance_labels.keys())
+	test_list = list(testset_instance_labels.keys())
 
-	# 5-cross validation
-	size = math.ceil(len(instance_list) / 5)
-	chunks = list()
+	# testing
+	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
+	X_train, Y_train = get_instances_vector_label(instance_list)
+	X_test, Y_test = get_test_instance_vector_label(test_list)
+
+	nb_classifier.fit(X_train, Y_train)
+	Y_pred = nb_classifier.predict(X_test)
+	validate(Y_pred, Y_test)
 
 
-	for c in range(0, 4):
-		subset = instance_list[ c * size : c * size + size]
-		chunks.append(subset)
-	# last chunk
-	subset = instance_list[4 * size :]
-	chunks.append(subset)
+	# split data set
+	# size = math.ceil(len(instance_list) / 5)
+	# chunks = list()
+
+
+	# for c in range(0, 4):
+	# 	subset = instance_list[ c * size : c * size + size]
+	# 	chunks.append(subset)
+	# # last chunk
+	# subset = instance_list[4 * size :]
+	# chunks.append(subset)
 
 
 	# cross validation
@@ -180,7 +231,7 @@ if __name__ == '__main__':
 	# 	print("[INFO] training set size :" + str(len(training_set)))
 	# 	print("[INFO] test set size :" + str(len(test_set)))
 		
-	# 	nb_classifier = BernoulliNB(alpha=1, fit_prior=True)
+	# 	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
 	# 	X_train, Y_train = get_instances_vector_label(training_set)
 	# 	X_test, Y_test = get_instances_vector_label(test_set)
 
@@ -193,10 +244,10 @@ if __name__ == '__main__':
 	# test_set = chunks[0]
 	# train_set = chunks[1] + chunks[2] + chunks[3] + chunks[4]
 
-	# # test_set = test_set[:1000]
-	# # grid_search(test_set)
+	# # # test_set = test_set[:1000]
+	# # # grid_search(test_set)
 	
-	# nb_classifier = BernoulliNB(alpha=1, fit_prior=True)
+	# nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
 	# X_train, Y_train = get_instances_vector_label(train_set)
 	# X_test, Y_test = get_instances_vector_label(test_set)
 
@@ -206,8 +257,12 @@ if __name__ == '__main__':
 	# validate(Y_pred, Y_test)
 
 	# roc auc
-	roc_auc(instance_list)
+	# roc_auc(instance_list)
 
+
+	# grid search
+	# data_set = chunks[0] + chunks[2] + chunks[4]
+	# grid_search(data_set)
 
 
 
