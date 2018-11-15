@@ -8,7 +8,6 @@
 **/__pycache__/**
 
 # EXCLUSIVE
-!**/data/**
 !**/tfidf/**.pickle
 
 # ENV
