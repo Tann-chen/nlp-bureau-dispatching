@@ -20,7 +20,7 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "../../data/4w_trainset.csv"
+file_path = "../../data/4w_trainset_zk4.csv"
 output_file_prefix = "trainset_"
 
 

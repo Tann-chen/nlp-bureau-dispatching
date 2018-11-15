@@ -1,11 +1,7 @@
+import matplotlib.pyplot as plt
+import csv
+
 # log format : [REPORT] true_label : 0 | pred_label : 1
-
-
-all_labels = set()
-correct_labeling = dict()
-
-# error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
-error_labeling = dict()
 
 
 def count_error_labeling(error_label, error_label_dict):
@@ -15,7 +11,13 @@ def count_error_labeling(error_label, error_label_dict):
 		error_label_dict[error_label] = 1
 
 
-with open("log_file.txt", 'r') as file:
+all_labels = set()
+correct_labeling = dict()
+
+# error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
+error_labeling = dict()
+
+with open("bayes/log_zk4.txt", 'r') as file:
 	log_content = file.read()
 	log_rows = log_content.split('\n')
 
@@ -23,7 +25,7 @@ for row in log_rows:
 	if not row.startswith('[REPORT]'):
 		continue
 	# parse
-	row_elements = row[8:].replace(' ', '')split('|')
+	row_elements = row[8:].replace(' ', '').split('|')
 	true_label = int(row_elements[0].split(':')[1].strip())
 	pred_label = int(row_elements[1].split(':')[1].strip())
 
@@ -47,38 +49,61 @@ for row in log_rows:
 
 
 # process the count
-all_labels = list(all_labels).sort()
+all_labels = list(all_labels)
+all_labels.sort()
 
 # count the distribution of true label
-label_counts = [0] * len(all_labels)
-for idex in all_labels:
-	correct_count = correct_labeling[idex]
+label_correct_counts = dict()
+label_error_counts = dict()
+
+for label in all_labels:
+	correct_count = 0
+	if label in correct_labeling.keys(): 
+		correct_count = correct_labeling[label]
+
 	error_count = 0
-	for k, c in error_labeling[idex].items():
+	for k, c in error_labeling[label].items():
 		error_count += c
-	label_counts[idex] = correct_count + error_count
+
+	label_correct_counts[label] = correct_count
+	label_error_counts[label] = error_count
+
 # plot the distribution of true labels
+plt.bar(all_labels, list(label_correct_counts.values()), color='green')
+plt.bar(all_labels, list(label_error_counts.values()), color='red', bottom=list(label_correct_counts.values()))
+plt.show()
+
 
 
 # count the error matrix
 # X-axis: true label; Y-axis: pred label
-error_matrix = []
-for i in range(len(all_labels)):
-	error_matrix.append([0] * len(all_labels))
 
-for true_label in range(len(all_labels)):
-	for pred_label in range(len(all_labels)):
+target_file = open("details.csv", 'w', encoding='gb18030', newline='')
+writer = csv.writer(target_file)
 
-		if true_label == pred_label:
-			error_matrix[true_label][pred_label] = correct_labeling[true_label]
-		else:
-			num = 0
-			if true_label in error_labeling.keys():
-				if pred_label in error_labeling[true_label].keys():
-					num = error_labeling[true_label][pred_label]
-			error_matrix[true_label][pred_label] = num
-# plot error matrix 
+try:
+	title = ['']
+	for label in all_labels:
+		title.append(label)
+	writer.writerow(title)
 
+	for true_label in all_labels:
+		content = list()
+		content.append(true_label)
+
+		for pred_label in all_labels:
+			if true_label == pred_label:
+				content.append(label_correct_counts[true_label])
+			else:
+				num = 0
+				if true_label in error_labeling.keys():
+					if pred_label in error_labeling[true_label].keys():
+						num = error_labeling[true_label][pred_label]
+				content.append(num)
+
+		writer.writerow(content)
+except csv.Error as e:
+	target_file.close()
 
 
 

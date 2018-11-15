@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 
 
-file_path = "../../data/4k_testset.csv"
+file_path = "../../data/4k_testset_zk4.csv"
 output_file_prefix = "testset_"
 
 

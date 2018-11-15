@@ -11,10 +11,10 @@ from bs4 import BeautifulSoup
 global inverse_index
 global testset_instance_tokens
 
-with open("trainset_bow_inverse_index.pickle", 'rb') as iif:
+with open("bow/trainset_bow_inverse_index.pickle", 'rb') as iif:
 	inverse_index = pickle.load(iif)
 
-with open("testset_bow_instance_tokens.pickle", 'rb') as itf:
+with open("bow/testset_bow_instance_tokens.pickle", 'rb') as itf:
 	testset_instance_tokens = pickle.load(itf)
 
 
