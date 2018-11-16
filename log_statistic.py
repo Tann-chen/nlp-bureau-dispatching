@@ -17,7 +17,7 @@ correct_labeling = dict()
 # error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
 error_labeling = dict()
 
-with open("bayes/log_zk4.txt", 'r') as file:
+with open("bayes/log_5c.txt", 'r') as file:
 	log_content = file.read()
 	log_rows = log_content.split('\n')
 
@@ -62,8 +62,9 @@ for label in all_labels:
 		correct_count = correct_labeling[label]
 
 	error_count = 0
-	for k, c in error_labeling[label].items():
-		error_count += c
+	if label in error_labeling.keys():
+		for k, c in error_labeling[label].items():
+			error_count += c
 
 	label_correct_counts[label] = correct_count
 	label_error_counts[label] = error_count

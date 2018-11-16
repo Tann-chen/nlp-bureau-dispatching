@@ -10,8 +10,8 @@ import math
 from bs4 import BeautifulSoup
 
 
-original_file_path = "original_testset.csv"
-target_file_path = "4k_testset_800.csv"
+original_file_path = "data/original_trainingset.csv"
+target_file_path = "data/8w_trainset.csv"
 
 global agency_class
 
@@ -130,14 +130,15 @@ if __name__ == '__main__':
         invalid_agency = ["其他单位", "省外单位", "除海口外的市县", "无效归属", "省级单位", "处置单位"]
 
         docu_id = -1
-        required_num = 4000
+        required_num = 80000
+        
         #
-        label_count = [0] * 5
+        #label_count = [0] * 5
 
         for row in reader:
             docu_id += 1
 
-            if random.randint(1, 10) > 9:
+            if random.randint(1, 10) > 7:
                 print("[INFO] pass id :" + str(docu_id))
                 continue
 
@@ -151,12 +152,12 @@ if __name__ == '__main__':
             if label == -1:
                 continue
 
-            # 
-            if label_count[int(label)] >= 800:
-                print("[INFO] some label data overflow :" + str(label))
-                continue 
-            #
-            label_count[int(label)] = label_count[int(label)] + 1
+            # # 
+            # if label_count[int(label)] >= 800:
+            #     print("[INFO] some label data overflow :" + str(label))
+            #     continue 
+            # #
+            # label_count[int(label)] = label_count[int(label)] + 1
 
             new_list = []
             new_list.append(docu_id)
