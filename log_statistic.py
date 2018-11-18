@@ -3,7 +3,7 @@ import csv
 
 # log format : [REPORT] true_label : 0 | pred_label : 1
 
-base_labels = [1, 2, 3]
+base_labels = []
 
 def count_error_labeling(error_label, error_label_dict):
 	if error_label in error_label_dict.keys():
