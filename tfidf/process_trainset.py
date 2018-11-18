@@ -22,7 +22,7 @@ def count_token_frequency(iid, inverse_index_value):
 		inverse_index_value.append(temp)
 
 
-file_path = "../data/4w_trainset.csv"
+file_path = "../data/8w_trainset.csv"
 output_file_prefix = "tfidf_"
 source_file = open(file_path, 'r', encoding='gb18030')
 reader = csv.reader(source_file)

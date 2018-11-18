@@ -3,6 +3,7 @@ import csv
 
 # log format : [REPORT] true_label : 0 | pred_label : 1
 
+base_labels = [1, 2, 3]
 
 def count_error_labeling(error_label, error_label_dict):
 	if error_label in error_label_dict.keys():
@@ -17,7 +18,7 @@ correct_labeling = dict()
 # error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
 error_labeling = dict()
 
-with open("bayes/log_5c.txt", 'r') as file:
+with open("bayes/log_zk04.txt", 'r') as file:
 	log_content = file.read()
 	log_rows = log_content.split('\n')
 
@@ -70,8 +71,20 @@ for label in all_labels:
 	label_error_counts[label] = error_count
 
 # plot the distribution of true labels
-plt.bar(all_labels, list(label_correct_counts.values()), color='green')
-plt.bar(all_labels, list(label_error_counts.values()), color='red', bottom=list(label_correct_counts.values()))
+x = list()
+y_correct = list()
+y_error = list()
+
+for l in all_labels:
+	if l not in base_labels:
+		x.append(l)
+		y_correct.append(label_correct_counts[l])
+		y_error.append(label_error_counts[l])
+
+
+
+plt.bar(x, y_correct, color='green')
+plt.bar(x, y_error, color='red', bottom=y_correct)
 plt.show()
 
 
