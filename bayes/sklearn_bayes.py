@@ -95,13 +95,15 @@ def get_test_instance_vector_label(test_set):
 	return X, Y
 
 
-def validate(Y_pred, Y_true):
+def validate(Y_pred, Y_true, instance_ids):
 	correct_count = 0
+
 	for idx in range(0, len(Y_true)):
 		y_true = Y_true[idx]
 		y_pred = Y_pred[idx]
+		instance_id = instance_ids[idx]
 
-		print("[REPORT] true_label : " + str(y_true) + " | pred_label : " + str(y_pred) )
+		print( "[REPORT] instance_id: " + instance_id + " | true_label : " + str(y_true) + " | pred_label : " + str(y_pred) )
 		
 		if y_true == y_pred:
 			correct_count += 1
@@ -150,7 +152,6 @@ def roc_auc(data_set):
 	roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
 	# Compute macro-average ROC curve and ROC area
-
 	# First aggregate all false positive rates
 	all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
 
@@ -168,16 +169,8 @@ def roc_auc(data_set):
 
 	# Plot all ROC curves
 	plt.figure()
-	plt.plot(fpr["micro"], tpr["micro"],
-	         label='micro-average ROC curve (area = {0:0.2f})'
-	               ''.format(roc_auc["micro"]),
-	         color='deeppink', linestyle=':', linewidth=4)
-
-	plt.plot(fpr["macro"], tpr["macro"],
-	         label='macro-average ROC curve (area = {0:0.2f})'
-	               ''.format(roc_auc["macro"]),
-	         color='navy', linestyle=':', linewidth=4)
-
+	plt.plot(fpr["micro"], tpr["micro"], label='micro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["micro"]), color='deeppink', linestyle=':', linewidth=4)
+	plt.plot(fpr["macro"], tpr["macro"], label='macro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["macro"]), color='navy', linestyle=':', linewidth=4)
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
 	plt.xlabel('False Positive Rate')
@@ -185,9 +178,6 @@ def roc_auc(data_set):
 	plt.title('Some extension of Receiver operating characteristic to multi-class')
 	plt.legend(loc="lower right")
 	plt.show()
-
-
-	
 
 
 
@@ -202,13 +192,12 @@ if __name__ == '__main__':
 
 	nb_classifier.fit(X_train, Y_train)
 	Y_pred = nb_classifier.predict(X_test)
-	validate(Y_pred, Y_test)
+	validate(Y_pred, Y_test, test_list)
 
 
 	# split data set
 	# size = math.ceil(len(instance_list) / 5)
 	# chunks = list()
-
 
 	# for c in range(0, 4):
 	# 	subset = instance_list[ c * size : c * size + size]
