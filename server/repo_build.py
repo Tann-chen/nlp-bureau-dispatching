@@ -1,4 +1,5 @@
 import os
+import csv
 import pickle
 
 def parse_testset_log(file_path):
@@ -41,6 +42,42 @@ def parse_testset_log(file_path):
 		pickle.dump(testset_predicts, f, pickle.HIGHEST_PROTOCOL)
 		print('[INFO] testset_predicts pickle has been saved.')
 
+
+def parse_testset_csv(file_path):
+	sf = open(file_path, 'r', encoding='gb18030')
+	reader = csv.reader(sf)
+
+	instance_infos = dict()
+
+	for row in reader:
+		instance_id = int(row[0])
+		class_1 = row[2]
+		class_2 = row[3]
+		class_3 = row[4]
+		class_4 = row[5]
+		content = row[6]
+		agency = row[9]
+		instance_infos[instance_id] = tuple(class_1, class_2, class_3, class_4, content, agency)
+
+	with open('repo/testset_instance_infos.pickle', 'wb') as f:
+		pickle.dump(instance_infos, f, pickle.HIGHEST_PROTOCOL)
+		print('[INFO] testset_instance_infos pickle has been saved.')
+
+
+def parse_label_agency_map(file_path):
+	label_agency_map = dict()
+
+	with open(file_path, 'r') as file:
+		label_entries = file.read().split('\n')
+		
+	for entry in label_entries:
+		agency_name = entry.split(',')[0]
+		label = int(entry.split(',')[1])
+		label_agency_map[label] = agency_name
+
+	with open('repo/testset_label_agency_map.pickle', 'wb') as f:
+		pickle.dump(label_agency_map, f, pickle.HIGHEST_PROTOCOL)
+		print('[INFO] testset_label_agency_map pickle has been saved.')
 
 
 
