@@ -1,0 +1,23 @@
+td.detail-control {
+    background: url('../imag/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+
+tr.shown td.detail-control {
+    background: url('../imag/details_close.png') no-repeat center center;
+}
+
+tfoot input {
+    width: 100%;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+footer {
+    position: absolute;
+    bottom: 0px;
+    border: gray solid 1px;
+    padding: 5px 10px;
+    width: 100%;
+    text-align: center;
+}

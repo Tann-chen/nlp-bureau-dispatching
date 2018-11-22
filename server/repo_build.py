@@ -50,6 +50,9 @@ def parse_testset_csv(file_path):
 	instance_infos = dict()
 
 	for row in reader:
+		if row[0] == 'ID':
+			continue
+
 		instance_id = int(row[0])
 		class_1 = row[2]
 		class_2 = row[3]
@@ -57,7 +60,7 @@ def parse_testset_csv(file_path):
 		class_4 = row[5]
 		content = row[6]
 		agency = row[9]
-		instance_infos[instance_id] = tuple(class_1, class_2, class_3, class_4, content, agency)
+		instance_infos[instance_id] = tuple( (class_1, class_2, class_3, class_4, content, agency) )
 
 	with open('repo/testset_instance_infos.pickle', 'wb') as f:
 		pickle.dump(instance_infos, f, pickle.HIGHEST_PROTOCOL)
@@ -89,3 +92,4 @@ def parse_label_agency_map(file_path):
 
 if __name__ == '__main__':
 	parse_testset_log('../bayes/log_zk04.txt')
+	parse_testset_csv('../data/4k_testset_zk04.csv')

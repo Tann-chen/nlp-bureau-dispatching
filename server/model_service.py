@@ -40,43 +40,14 @@ def service_get_testset_labels_count():
 	return labels_count
 
 
-def service_get_testset_instance_list():
-	instance_list = list()
-
-	for instance_id in testset_predicts.keys():
-		detail = dict()
-		
-		info = testset_instance_infos[instance_id]
-		detail['class1'] = info[0]
-		detail['class2'] = info[1]
-		detail['class3'] = info[2]
-		detail['class4'] = info[3]
-		detail['content'] = info[4]
-		
-		pred_info = testset_predicts[instance_id]
-		detail['true_label'] = pred_info[0]
-		detail['pred_label'] = pred_info[1]
-		instance_list.append(detail)
-
-	return instance_list
-
-
 def service_get_testset_instance_info(instance_id):
-	detail = dict()
-
 	info = testset_instance_infos[instance_id]
-	detail['class1'] = info[0]
-	detail['class2'] = info[1]
-	detail['class3'] = info[2]
-	detail['class4'] = info[3]
-	detail['content'] = info[4]
-	detail['agency'] = info[5]
+	pred_info = testset_predicts['testset_pred_infos'][instance_id]
+	return info, pred_info
 
-	pred_info = testset_predicts[instance_id]
-	detail['true_label'] = pred_info[0]
-	detail['pred_label'] = pred_info[1]
 
-	return detail
+def service_get_testset_infos():
+	return testset_instance_infos, testset_predicts['testset_pred_infos']
 
 
 
