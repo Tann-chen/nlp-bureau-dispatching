@@ -40,7 +40,7 @@ def parse_testset_log(file_path):
 
 	with open('repo/testset_predicts.pickle', 'wb') as f:
 		pickle.dump(testset_predicts, f, pickle.HIGHEST_PROTOCOL)
-		print('[INFO] testset_predicts pickle has been saved.')
+		print('[INFO] testset predicts infos pickle has been saved.')
 
 
 def parse_testset_csv(file_path):
@@ -48,25 +48,40 @@ def parse_testset_csv(file_path):
 	reader = csv.reader(sf)
 
 	instance_infos = dict()
+	testset_labels_count = dict()
 
 	for row in reader:
 		if row[0] == 'ID':
 			continue
-
+		
 		instance_id = int(row[0])
 		class_1 = row[2]
 		class_2 = row[3]
 		class_3 = row[4]
 		class_4 = row[5]
 		content = row[6]
-		agency = row[9]
-		instance_infos[instance_id] = tuple( (class_1, class_2, class_3, class_4, content, agency) )
+		agency = row[8]
+		label = int(row[9])
 
-	with open('repo/testset_instance_infos.pickle', 'wb') as f:
-		pickle.dump(instance_infos, f, pickle.HIGHEST_PROTOCOL)
-		print('[INFO] testset_instance_infos pickle has been saved.')
+		# add instance infos
+		instance_infos[instance_id] = tuple( (class_1, class_2, class_3, class_4, content, agency, label) )
+
+		# add test labels count
+		if label not in testset_labels_count.keys():
+			testset_labels_count[label] = 1
+		else:
+			testset_labels_count[label] += 1
+
+	# dump
+	dump = dict()
+	dump['instance_infos'] = instance_infos
+	dump['labels_count'] = testset_labels_count
+	with open('repo/testset_infos.pickle', 'wb') as f:
+		pickle.dump(dump, f, pickle.HIGHEST_PROTOCOL)
+		print('[INFO] testset infos pickle has been saved.')
 
 
+# ignore
 def parse_label_agency_map(file_path):
 	label_agency_map = dict()
 
@@ -83,6 +98,39 @@ def parse_label_agency_map(file_path):
 		print('[INFO] testset_label_agency_map pickle has been saved.')
 
 
+def parse_trainset_csv(file_path):
+	sf = open(file_path, 'r', encoding='gb18030')
+	reader = csv.reader(sf)
+	trainset_labels_count = dict()
+	trainset_agencies_count = dict()
+
+	for row in reader:
+		if row[0] == 'ID':
+			continue
+
+		agency = row[8]
+		label = int(row[9])
+
+		# add labels count
+		if label not in trainset_labels_count.keys():
+			trainset_labels_count[label] = 1
+		else:
+			trainset_labels_count[label] += 1
+		# add agency count
+		if agency not in trainset_agencies_count.keys():
+			trainset_agencies_count[agency] = 1
+		else:
+			trainset_agencies_count[agency] += 1
+
+	#dump
+	dump = dict()
+	dump['labels_count'] = trainset_labels_count
+	dump['agencies_count'] = trainset_agencies_count
+	with open('repo/trainset_infos.pickle', 'wb') as f:
+		pickle.dump(dump, f, pickle.HIGHEST_PROTOCOL)
+		print('[INFO] trainset infos pickle has been saved.')
+
+
 
 
 
@@ -93,3 +141,4 @@ def parse_label_agency_map(file_path):
 if __name__ == '__main__':
 	parse_testset_log('../bayes/log_zk04.txt')
 	parse_testset_csv('../data/4k_testset_zk04.csv')
+	parse_trainset_csv('../data/4w_trainset_zk04.csv')

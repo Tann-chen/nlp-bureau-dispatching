@@ -1,95 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
+<html lang="fr-EN">
 <head>
   <meta charset="UTF-8">
-  <title>Bureau dispatching</title>
-  <link rel="stylesheet" href="css/bootstrap.css">
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/jquery.dataTables.min.css">
+  <meta name="viewport" content="width=device-width">
+  <title>Bureau Dispatching</title>
+  <link rel="stylesheet" href="static/css/bootstrap.css">
+  <link rel="stylesheet" href="static/css/main.css">
 </head>
-
 <body>
-<div id='test_set' style="height: 100%">
-  <table id="test_set_predict_table" class="display" style="width:100%">
-    <thead>
-    <tr>
-      <th></th>
-      <th>ID</th>
-      <th>行业分类 1</th>
-      <th>行业分类 2</th>
-      <th>行业分类 3</th>
-      <th>行业分类 4</th>
-      <th>所属机构</th>
-      <th>预测机构</th>
-      <th>正确性</th>
-    </tr>
-    </thead>
-  </table>
+<div id="content">
+  <div style="width: 100%; text-align: center">
+    <img src="static/imag/logo.png" style="width: 460px">
+  </div>
+  <div class="input-group input-group-lg" style="margin-top: 5%">
+    <input type="text" id="search_input" class="form-control" aria-describedby="sizing-addon1">
+    <div class="input-group-btn">
+      <button class="btn btn-default" type="button" style="outline: none;" id="search_btn">匹配</button>
+    </div>
+  </div>
+  <div style="margin-top: 5%;width: 100%; text-align: center">
+    <a href="/statistic" style="text-decoration: underline; margin-right: 10px">See our test statistics</a>
+    <a href="/test_cases" style="text-decoration: underline; margin-left: 10px">See our test cases</a>
+  </div>
 </div>
 </body>
-
 <footer>
   © Concordia University. All rights reserved.
 </footer>
-
-<script src='js/jquery-1.11.3.min.js'></script>
-<script src='js/bootstrap.min.js'></script>
-<script src='js/jquery.dataTables.min.js'></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-        var table = $('#test_set_predict_table').DataTable({
-            "ajax": "data.json",
-            "columns": [
-                {
-                    "className": 'detail-control',
-                    "orderable": false,
-                    "data": null,
-                    "defaultContent": ''
-                },
-                {data: "id"},
-                {data: "class1"},
-                {data: "class2"},
-                {data: "class3"},
-                {data: "class4"},
-                {data: "true_label"},
-                {data: "pred_label"},
-                {
-                    render: function (data, type, row, meta) {
-                        var img = 'imag/' + (row.true_label == row.pred_label ? 'correct.png' : 'wrong.png');
-                        return '<img src="' + img + '">';
-                    }
-                }
-            ],
-            "order": false,
-            "info": false,
-            "searching": false
-        });
-
-        //register click event for rows
-        $('#test_set_predict_table tbody').on('click', 'td.detail-control', function () {
-            var tr = $(this).closest('tr');
-            var row = table.row(tr);
-
-            if (row.child.isShown()) {
-                row.child.hide();
-                tr.removeClass('shown');
-            }
-            else {
-                row.child(show_detail(row.data())).show();
-                tr.addClass('shown');
-            }
-        });
-    });
-
-    function show_detail(row) {
-        var classes = row.class1 + ', ' + row.class2 + ', ' + row.class3 + ', ' + row.class4;
-
-        return '<table cellpadding="5" cellspacing="0" border="0" style="width: 100%">' +
-            '<tr>' +
-            '<td><b>诉求内容</b></td>' +
-            '<td>' + row.content + '</td>' +
-            '</tr>' +
-            '</table>';
-    }
-</script>
 </html>

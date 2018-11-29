@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bureau Dispatching</title>
+  <link rel="stylesheet" href="static/css/main.css">
+</head>
+
+<body>
+<div id='mountNode' style="height: 1000px">
+</div>
+</body>
+
+<script src='static/js/jquery-3.2.1.min.js'></script>
+<script src="static/js/g2.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $.ajax({
+            type: "get",
+            url: "/api/statistic/train_test",
+            dataType: "json",
+            success: function (data) {
+                var labels = data.labels;
+                var trainset_count = data.trainset_count;
+                var testset_count = data.testset_count;
+                var accuracy = data.accuracy;
+                render_bar_char(labels, trainset_count, testset_count, accuracy);
+            }
+        });
+    });
+
+
+    function render_bar_char(labels, trainset_count, testset_count, accuracy) {
+        var data_list = [];
+        for (var i = trainset_count.length - 1; i >= 0; i--) {
+            var entry = [];
+            entry['class'] = '训练集数据量(条)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '1';
+            entry['value'] = trainset_count[i];
+            data_list.push(entry);
+
+            entry = [];
+            entry['class'] = '训练集数据量(条)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '2';
+            var value = trainset_count[i];
+            entry['value'] = 18000 - value;
+            data_list.push(entry);
+        }
+
+        for (var i = trainset_count.length - 1; i >= 0; i--) {
+            var entry = [];
+            entry['class'] = '测试集数据量(条)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '1';
+            entry['value'] = testset_count[i];
+            data_list.push(entry);
+
+            entry = [];
+            entry['class'] = '测试集数据量(条)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '2';
+            entry['value'] = 1200 - testset_count[i];
+            data_list.push(entry);
+        }
+
+        for (var i = trainset_count.length - 1; i >= 0; i--) {
+            var entry = [];
+            entry['class'] = '测试准确率(%)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '1';
+            var accu = parseInt(accuracy[i] * 1000) / 10;
+            entry['value'] = accu;
+            data_list.push(entry);
+
+            entry = [];
+            entry['class'] = '测试准确率(%)';
+            entry['country'] = '样本' + labels[i];
+            entry['type'] = '2';
+            entry['value'] = 100 - accu;
+            data_list.push(entry);
+        }
+
+
+        var chart = new G2.Chart({
+            container: 'mountNode',
+            forceFit: true,
+            height: window.innerHeight * 1.3,
+            padding: [20, 20, 20, 70]
+        });
+
+        chart.source(data_list);
+        chart.coord().transpose();
+        chart.legend(false);
+        chart.facet('rect', {
+            fields: ['class'],
+            colTitle: {
+                offsetY: -15,
+                style: {
+                    fontSize: 14,
+                    textAlign: 'center',
+                    fontWeight: 300,
+                    fill: '#8d8d8d'
+                }
+            },
+            eachView: function eachView(view, facet) {
+                if (facet.colIndex === 0) {
+                    view.axis('country', {
+                        label: {
+                            textStyle: {
+                                fill: '#8d8d8d',
+                                fontSize: 12
+                            }
+                        },
+                        tickLine: {
+                            alignWithLabel: false,
+                            length: 0
+                        },
+                        line: {
+                            lineWidth: 0
+                        }
+                    });
+
+                    view.axis('value', false);
+                } else {
+                    view.axis(false);
+                }
+                var color = getTypeColor(facet.colValue);
+                view.intervalStack().position('country*value').color('type', [color, '#ebedf0']).opacity(1).size(20).label('value*type', function (value, type) {
+                    if (type === '2') return false;
+                    var offset = value < 1000 ? 10 : -4;
+                    var fill = value < 1000 ? '#525253' : '#ffffff';
+                    var textAlign = value < 1000 ? 'start' : 'end';
+                    return {
+                        offset: offset,
+                        textStyle: {
+                            fill: fill,
+                            fontSize: 12,
+                            textAlign: textAlign,
+                            fontWeight: 300,
+                            shadowBlur: 2,
+                            shadowColor: 'rgba(0, 0, 0, .45)'
+                        }
+                    };
+                });
+            }
+        });
+
+        chart.tooltip(false);
+        chart.render();
+    }
+
+    function getTypeColor(type) {
+        if (type === '训练集数据量(条)') return '#1890ff';
+        if (type === '测试集数据量(条)') return '#2fc25b';
+        if (type === '测试准确率(%)') return '#facc14';
+    }
+</script>
+</html>

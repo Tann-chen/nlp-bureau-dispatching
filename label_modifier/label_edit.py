@@ -24,8 +24,8 @@ with open("label.conf", 'r') as f:
 		label_instance_counter[label] = 0
 
 # edit label in csv
-input_file_path = "../data/4k_testset.csv"
-output_file_path = "4k_testset_zk04.csv"
+input_file_path = "../data/4w_trainset.csv"
+output_file_path = "4w_trainset_01234.csv"
 
 source_file = open(input_file_path, 'r', encoding='gb18030')
 target_file = open(output_file_path, 'w', encoding='gb18030', newline='')
