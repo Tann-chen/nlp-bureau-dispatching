@@ -2,6 +2,7 @@ import os
 import csv
 import math
 import pickle
+from sklearn.externals import joblib
 
 # inversed_index and instance_label (baf_of_word.py) are the foundation of the implementaion.
 
@@ -196,6 +197,13 @@ def naive_bayes(training_set, test_set):
 
 	print("================== test finish =================")
 	print("Accuracy : " + str(len(correct_instance_ids) / len(test_set)))
+
+
+def train_model(training_set):
+	
+
+
+	
 
 
 if __name__ == '__main__':

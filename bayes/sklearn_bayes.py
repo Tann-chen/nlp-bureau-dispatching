@@ -12,6 +12,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import label_binarize
 from sklearn.model_selection import train_test_split
+from sklearn.externals import joblib
 # import matplotlib.pyplot as plt
 
 
@@ -181,18 +182,33 @@ def roc_auc(data_set):
 
 
 
+# the func is to train the model to pred the query without 4 pre-classes
+def get_instances_vector_label_model(data_set):
+	X = list()
+	Y = list()
+	for iid in data_set:
+		bow_vec = get_bag_of_word_vector(iid)
+		x = bow_vec
+		y = int(trainset_instance_labels[iid])
+		X.append(x)
+		Y.append(y)
+
+	return X,Y
+
+
+
 if __name__ == '__main__':
 	instance_list = list(trainset_instance_labels.keys())
 	test_list = list(testset_instance_labels.keys())
 
 	# testing
-	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
-	X_train, Y_train = get_instances_vector_label(instance_list)
-	X_test, Y_test = get_test_instance_vector_label(test_list)
+	# nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
+	# X_train, Y_train = get_instances_vector_label(instance_list)
+	# X_test, Y_test = get_test_instance_vector_label(test_list)
 
-	nb_classifier.fit(X_train, Y_train)
-	Y_pred = nb_classifier.predict(X_test)
-	validate(Y_pred, Y_test, test_list)
+	# nb_classifier.fit(X_train, Y_train)
+	# Y_pred = nb_classifier.predict(X_test)
+	# validate(Y_pred, Y_test, test_list)
 
 
 	# split data set
@@ -254,7 +270,10 @@ if __name__ == '__main__':
 	# grid_search(data_set)
 
 
-
-
-
+	# train the model without 4-preclasses
+	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
+	X_train, Y_train = get_instances_vector_label_model(instance_list)
+	nb_classifier.fit(X_train, Y_train)
+	joblib.dump(nb_classifier, 'nb_bureau_disp_classifier.joblib')
+	print("------------ Model generated ------------")
 

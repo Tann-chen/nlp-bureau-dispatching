@@ -20,7 +20,7 @@
             url: "/api/statistic/train_test",
             dataType: "json",
             success: function (data) {
-                var labels = data.labels;
+                var labels = data.agencies;
                 var trainset_count = data.trainset_count;
                 var testset_count = data.testset_count;
                 var accuracy = data.accuracy;
@@ -35,14 +35,14 @@
         for (var i = trainset_count.length - 1; i >= 0; i--) {
             var entry = [];
             entry['class'] = '训练集数据量(条)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '1';
             entry['value'] = trainset_count[i];
             data_list.push(entry);
 
             entry = [];
             entry['class'] = '训练集数据量(条)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '2';
             var value = trainset_count[i];
             entry['value'] = 18000 - value;
@@ -52,14 +52,14 @@
         for (var i = trainset_count.length - 1; i >= 0; i--) {
             var entry = [];
             entry['class'] = '测试集数据量(条)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '1';
             entry['value'] = testset_count[i];
             data_list.push(entry);
 
             entry = [];
             entry['class'] = '测试集数据量(条)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '2';
             entry['value'] = 1200 - testset_count[i];
             data_list.push(entry);
@@ -68,7 +68,7 @@
         for (var i = trainset_count.length - 1; i >= 0; i--) {
             var entry = [];
             entry['class'] = '测试准确率(%)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '1';
             var accu = parseInt(accuracy[i] * 1000) / 10;
             entry['value'] = accu;
@@ -76,7 +76,7 @@
 
             entry = [];
             entry['class'] = '测试准确率(%)';
-            entry['country'] = '样本' + labels[i];
+            entry['country'] = labels[i];
             entry['type'] = '2';
             entry['value'] = 100 - accu;
             data_list.push(entry);

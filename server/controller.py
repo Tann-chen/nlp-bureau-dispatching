@@ -69,16 +69,23 @@ def get_analysis_data():
 @app.route('/api/statistic/train_test', methods=['GET'])
 def get_train_test_set_statistic():
     sta_labels, sta_train_label_count, sta_test_label_count = service_get_train_test_labels_count()
+    
     sta_accuracy = list()
-
     for index in range(len(sta_labels)):
         label = sta_labels[index]
         sta_label_correct_count = service_get_correct_count_of_labelset(label)
         accuracy = sta_label_correct_count / sta_test_label_count[index]
         sta_accuracy.append(accuracy)
 
+    sta_agencies = list()
+    for label in sta_labels:
+        agency = get_label_mapping_val(label)
+        if agency.endswith('公司'):
+            agency = agency[: 3] + 'com.'
+        sta_agencies.append(agency)
+
     response = dict()
-    response['labels'] = sta_labels
+    response['agencies'] = sta_agencies
     response['trainset_count'] = sta_train_label_count
     response['testset_count'] = sta_test_label_count
     response['accuracy'] = sta_accuracy
