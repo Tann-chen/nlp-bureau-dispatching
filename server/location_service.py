@@ -14,4 +14,4 @@ def get_instance_location(instance_id):
 
 
 
-print(get_instance_location('15'))
+print(get_instance_location('34'))

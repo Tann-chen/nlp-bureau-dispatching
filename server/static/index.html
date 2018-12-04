@@ -9,7 +9,7 @@
 <body>
 <div id="content">
   <div style="width: 100%; text-align: center">
-    <img src="static/imag/logo.png" style="width: 460px">
+    <img src="static/imag/logo.png" style="width: 25%">
   </div>
   <div class="input-group input-group-lg" style="margin-top: 5%">
     <input type="text" id="search_input" class="form-control" aria-describedby="sizing-addon1">
@@ -23,7 +23,19 @@
   </div>
 </div>
 </body>
-<footer>
-  © Concordia University. All rights reserved.
-</footer>
+<script src='static/js/jquery-3.2.1.min.js'></script>
+<script>
+  $('#search_btn').on('click', function(){
+      var input_area = $('#search_input');
+      $.ajax({
+          type: "get",
+          url: "/api/predict?input=" + input_area.text(),
+          dataType: "json",
+          success: function (data) {
+              alert(data);
+              input_area.val('');
+          }
+      });
+  });
+</script>
 </html>

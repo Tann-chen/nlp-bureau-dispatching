@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import os
 from model_service import service_get_train_test_labels_count, service_get_testset_infos, service_get_testset_instance_info, service_get_correct_count_of_labelset
 from label_mapping_service import get_label_mapping_val
+from predict_service import pred_label_service
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -94,7 +95,16 @@ def get_train_test_set_statistic():
 
 
 
+@app.route('/api/predict', methods=['GET'])
+def predict():
+    input_content = request.args.get('input')
+    pred_label = pred_label_service(input_content)
+    pred_agency = get_label_mapping_val(pred_label)
+
+    return jsonify(pred_agency)
+
+
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0")   
