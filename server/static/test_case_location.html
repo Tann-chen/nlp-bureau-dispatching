@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bureau Dispatching</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/jquery.dataTables.min.css">
+  <style type="text/css">
+    #test_set_predict_table td {
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div id='test_set' style="height: 100%">
+  <table id="test_set_predict_table" class="display" style="width:100%">
+    <thead>
+    <tr>
+      <th></th>
+      <th>ID</th>
+      <th>行业分类 1</th>
+      <th>行业分类 2</th>
+      <th>行业分类 3</th>
+      <th>行业分类 4</th>
+      <th>所属机构</th>
+      <th>预测机构</th>
+      <th>预测地点</th>
+      <th>正确性</th>
+    </tr>
+    </thead>
+  </table>
+</div>
+</body>
+<script src='static/js/jquery-3.2.1.min.js'></script>
+<script src='static/js/jquery.dataTables.min.js'></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = $('#test_set_predict_table').DataTable({
+            "ajax": "/api/testset/instances",
+            "columns": [
+                {
+                    "className": 'detail-control',
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": ''
+                },
+                {data: "id"},
+                {data: "class1"},
+                {data: "class2"},
+                {data: "class3"},
+                {data: "class4"},
+                {
+                    render: function (data, type, row, meta) {
+                        return '<span class="hidden">' + row.true_agency + '</span>';
+                    }
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        return '<span class="hidden">' + row.pred_agency + '</span>';
+                    }
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        return '<span class="hidden">' + row.location + '</span>';
+                    }
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        var img = 'static/imag/' + (row.true_agency == row.pred_agency ? 'correct.png' : 'wrong.png');
+                        return '<img class="hidden" src="' + img + '">';
+                    }
+                }
+            ],
+            "order": false,
+            "info": false,
+            "searching": false,
+            "scrollY": (window.innerHeight - 180) + 'px',
+            "scrollCollapse": false,
+            "paging": true,
+            "lengthMenu": [[25, 10, 50, 100, -1], [25, 10, 50, 100, "All"]]
+        });
+
+        //register detail-control click event - show content
+        $('#test_set_predict_table tbody').on('click', 'td.detail-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                row.child(show_detail(row.data())).show();
+                tr.addClass('shown');
+            }
+        });
+
+        //register row click event - show hidden three cols
+        $('#test_set_predict_table tbody').on('click', 'tr', function () {
+            var tr = table.row(this).node();
+            var tds = $(tr).children();
+            $(tds[6]).children('span').removeClass('hidden');
+            $(tds[7]).children('span').removeClass('hidden');
+            $(tds[8]).children('span').removeClass('hidden');
+            $(tds[9]).children('img').removeClass('hidden');
+        });
+    });
+
+    function show_detail(row) {
+        var classes = row.class1 + ', ' + row.class2 + ', ' + row.class3 + ', ' + row.class4;
+
+        return '<table cellpadding="5" cellspacing="0" border="0" style="width: 100%">' +
+            '<tr>' +
+            '<td><b>诉求内容</b></td>' +
+            '<td>' + row.content + '</td>' +
+            '</tr>' +
+            '</table>';
+    }
+</script>
+</html>

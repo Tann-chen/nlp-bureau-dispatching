@@ -11,7 +11,3 @@ def get_instance_location(instance_id):
 		return None
 	else:
 		return instances_location[instance_id]
-
-
-
-print(get_instance_location('34'))

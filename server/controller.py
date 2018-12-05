@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import os
 from model_service import service_get_train_test_labels_count, service_get_testset_infos, service_get_testset_instance_info, service_get_correct_count_of_labelset
 from label_mapping_service import get_label_mapping_val
+from location_service import get_instance_location
 from predict_service import pred_label_service
 
 
@@ -19,7 +20,12 @@ def statistic():
 
 @app.route('/test_cases')
 def test_cases():
-    return app.send_static_file('test_case.html')
+    if_location_label = request.args.get('location')
+    if if_location_label == 'true':
+        return app.send_static_file('test_case_location.html')
+    else:
+        return app.send_static_file('test_case.html')
+    
     
 
 # -------- API --------
@@ -41,6 +47,11 @@ def get_testset_instances():
         pred_info = testset_predicts[instance_id]
         detail['true_agency'] = get_label_mapping_val(pred_info[0])
         detail['pred_agency'] = get_label_mapping_val(pred_info[1])
+        
+        location = get_instance_location(str(instance_id))
+        if location == None:
+            location = ''
+        detail['location'] = location
         instance_list.append(detail)
 
     response = dict({'data' : instance_list})
@@ -62,7 +73,10 @@ def get_analysis_data():
     detail['agency'] = info[5]
     detail['true_label'] = pred_info[0]
     detail['pred_label'] = pred_info[1]
-
+    location = get_instance_location(str(selected_instance_id))
+    if location == None:
+        location = ''
+    detail['location'] = location 
     return jsonify(detail)
 
 
