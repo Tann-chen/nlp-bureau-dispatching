@@ -7,14 +7,14 @@
 
 import os
 import csv
-import pickle 
+import pickle
 
 
 config_agency_label = {}
 label_instance_counter = {}
 
 # read label.conf file 
-with open("label.conf", 'r') as f:
+with open("all_label.conf", 'r') as f:
 	config_content = f.read()
 	config_list = config_content.split('\n')
 	for conf in config_list:
@@ -24,8 +24,8 @@ with open("label.conf", 'r') as f:
 		label_instance_counter[label] = 0
 
 # edit label in csv
-input_file_path = "../data/4w_trainset.csv"
-output_file_path = "4w_trainset_01234.csv"
+input_file_path = "../data/4k_testset.csv"
+output_file_path = "4k_testset_qzk.csv"
 
 source_file = open(input_file_path, 'r', encoding='gb18030')
 target_file = open(output_file_path, 'w', encoding='gb18030', newline='')

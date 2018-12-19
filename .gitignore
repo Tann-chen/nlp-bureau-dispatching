@@ -3,6 +3,8 @@
 **.txt
 **.pickle
 **.out
+**.docx
+**.joblib
 
 # COMPILED
 **/__pycache__/**

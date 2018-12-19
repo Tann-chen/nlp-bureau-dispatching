@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import pickle
+import csv
 from bs4 import BeautifulSoup
 from sklearn.externals import joblib
 
@@ -13,9 +14,21 @@ NI_suffix_tuple = ("局", "队", "所", "会", "中心", "部门")
 
 global inverse_index
 global nb_classfier
+global agency_label_mapping
 
 with open("bow/trainset_bow_inverse_index.pickle", 'rb') as f:
 	inverse_index = pickle.load(f)
+
+# label and agency name mapping
+with open("../label_modifier/all_label.conf", 'r') as f:
+	agency_label_mapping = dict()
+	config_content = f.read()
+	config_list = config_content.split('\n')
+	for conf in config_list:
+		conf_agency = conf.split(',')[0]
+		label = int(conf.split(',')[1])
+		agency_label_mapping[label] = conf_agency
+
 
 nb_classfier = joblib.load('nb_bureau_disp_classifier.joblib')
 
@@ -96,15 +109,39 @@ def get_pred_bow_vector(tokens):
 def pred_label(content):
 	tokens = extract_tokens(content)
 	vector = [ get_pred_bow_vector(tokens) ]
-	pred_label = nb_classfier.predict(vector)
-	return pred_label[0]
+	pred_label = nb_classfier.predict(vector)[0]
+	return agency_label_mapping[pred_label]
 
 
+def batch_pred(file_path):
+	source_file = open(file_path, 'r')
+	target_file = open('pred_result.csv', 'w', newline='')
+	reader = csv.reader(source_file)
+	writer = csv.writer(target_file)
+
+	try:
+		count = 0
+		for row in reader:
+			if row[0] == '工单编号':
+				writer.writerow(row)
+			else:
+				content = row[1]
+				pred = pred_label(content)
+				row.append(pred)
+				writer.writerow(row)
+				count += 1
+				if count == 2000:
+					break
+
+	except csv.Error as e:
+		source_file.close()
+		target_file.close()
+		print("[ERROR]")
 
 
 if __name__ == '__main__':
-	print(pred_label('龙昆南海德路昌茂花园旁边工地在超时施工，产生噪音，严重影响居民休息，请城管核实处理！谢谢！（请职能局按规定在30分钟内联系市民，响应处置）'))
-
+	#print(pred_label('龙昆南海德路昌茂花园旁边工地在超时施工，产生噪音，严重影响居民休息，请城管核实处理！谢谢！（请职能局按规定在30分钟内联系市民，响应处置）'))
+	batch_pred('../data/12345wolabel.csv')
 
 
 

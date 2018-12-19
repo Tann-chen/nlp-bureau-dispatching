@@ -20,7 +20,7 @@ correct_labeling = dict()
 # error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
 error_labeling = dict()
 
-with open("bayes/log_zk04.txt", 'r') as file:
+with open("test_qzk.txt", 'r') as file:
 	log_content = file.read()
 	log_rows = log_content.split('\n')
 
@@ -120,12 +120,6 @@ try:
 		writer.writerow(content)
 except csv.Error as e:
 	target_file.close()
-
-
-
-
-
-if __name__ == '__main__':
 	
 
 
