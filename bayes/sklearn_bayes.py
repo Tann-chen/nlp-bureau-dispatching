@@ -202,13 +202,13 @@ if __name__ == '__main__':
 	test_list = list(testset_instance_labels.keys())
 
 	# testing
-	# nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
-	# X_train, Y_train = get_instances_vector_label(instance_list)
-	# X_test, Y_test = get_test_instance_vector_label(test_list)
+	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
+	X_train, Y_train = get_instances_vector_label(instance_list)
+	X_test, Y_test = get_test_instance_vector_label(test_list)
 
-	# nb_classifier.fit(X_train, Y_train)
-	# Y_pred = nb_classifier.predict(X_test)
-	# validate(Y_pred, Y_test, test_list)
+	nb_classifier.fit(X_train, Y_train)
+	Y_pred = nb_classifier.predict(X_test)
+	validate(Y_pred, Y_test, test_list)
 
 
 	# split data set
@@ -232,7 +232,7 @@ if __name__ == '__main__':
 	# 		if j != i:
 	# 			training_set = training_set + chunks[j]
 
-	# 	# training
+	#  	# training
 	# 	print("[INFO] training set size :" + str(len(training_set)))
 	# 	print("[INFO] test set size :" + str(len(test_set)))
 		
@@ -242,7 +242,7 @@ if __name__ == '__main__':
 
 	# 	nb_classifier.fit(X_train, Y_train)
 	# 	Y_pred = nb_classifier.predict(X_test)
-	# 	validate(Y_pred, Y_test)
+	# 	validate(Y_pred, Y_test, test_set)
 
 
 	# one run
@@ -271,9 +271,9 @@ if __name__ == '__main__':
 
 
 	# train the model without 4-preclasses
-	nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
-	X_train, Y_train = get_instances_vector_label_model(instance_list)
-	nb_classifier.fit(X_train, Y_train)
-	joblib.dump(nb_classifier, 'nb_bureau_disp_classifier.joblib')
-	print("------------ Model generated ------------")
+	# nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
+	# X_train, Y_train = get_instances_vector_label_model(instance_list)
+	# nb_classifier.fit(X_train, Y_train)
+	# joblib.dump(nb_classifier, 'nb_bureau_disp_classifier.joblib')
+	# print("------------ Model generated ------------")
 

@@ -130,7 +130,7 @@ def batch_pred(file_path):
 				row.append(pred)
 				writer.writerow(row)
 				count += 1
-				if count == 2000:
+				if count == 20000:
 					break
 
 	except csv.Error as e:

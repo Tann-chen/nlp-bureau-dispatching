@@ -20,7 +20,7 @@ correct_labeling = dict()
 # error_labeling dict of dict : {true_label:{error_label_1: 1, error_label_2 :1, ....}......}
 error_labeling = dict()
 
-with open("test_qzk.txt", 'r') as file:
+with open("bayes/test-log.txt", 'r') as file:
 	log_content = file.read()
 	log_rows = log_content.split('\n')
 
@@ -29,8 +29,8 @@ for row in log_rows:
 		continue
 	# parse
 	row_elements = row[8:].replace(' ', '').split('|')
-	true_label = int(row_elements[0].split(':')[1].strip())
-	pred_label = int(row_elements[1].split(':')[1].strip())
+	true_label = int(row_elements[1].split(':')[1].strip())
+	pred_label = int(row_elements[2].split(':')[1].strip())
 
 	all_labels.add(true_label)
 	all_labels.add(pred_label)
@@ -87,6 +87,9 @@ for l in all_labels:
 
 plt.bar(x, y_correct, color='green')
 plt.bar(x, y_error, color='red', bottom=y_correct)
+plt.xlabel("labels")
+plt.ylabel("number of instances")
+plt.legend(["correct pred", "wrong pred"])
 plt.show()
 
 
