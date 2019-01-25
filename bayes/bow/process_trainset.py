@@ -20,8 +20,8 @@ def get_class_label(class_name, class_lst):
 
 
 
-file_path = "../../data/4w_trainset_new5.csv"
-output_file_prefix = "trainset_"
+file_path = "../../data/4w_trainset_zkall.csv"
+output_file_prefix = "zkall/trainset_"
 
 
 source_file = open(file_path, 'r', encoding='gb18030')

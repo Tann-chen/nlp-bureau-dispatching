@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 
 
 
-file_path = "../../data/4k_testset_new5.csv"
-output_file_prefix = "testset_"
+file_path = "../../data/4k_testset_zk0.csv"
+output_file_prefix = "test_zk0/testset_"
 
 
 source_file = open(file_path, 'r', encoding='gb18030')

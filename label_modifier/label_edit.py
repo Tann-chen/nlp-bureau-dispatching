@@ -14,7 +14,7 @@ config_agency_label = {}
 label_instance_counter = {}
 
 # read label.conf file 
-with open("labels.conf", 'r') as f:
+with open("labels_zkall.conf", 'r') as f:
 	config_content = f.read()
 	config_list = config_content.split('\n')
 	for conf in config_list:
@@ -25,7 +25,7 @@ with open("labels.conf", 'r') as f:
 
 # edit label in csv
 input_file_path = "../data/4w_trainset.csv"
-output_file_path = "4w_trainset_new5.csv"
+output_file_path = "../data/4w_trainset_zkall.csv"
 
 source_file = open(input_file_path, 'r', encoding='gb18030')
 target_file = open(output_file_path, 'w', encoding='gb18030', newline='')

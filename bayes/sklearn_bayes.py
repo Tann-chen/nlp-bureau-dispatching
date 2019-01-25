@@ -23,19 +23,19 @@ global testset_instance_labels
 global testset_instance_classes
 
 
-with open("bow/trainset_bow_instance_label.pickle", 'rb') as ilf:
+with open("bow/zk4/trainset_bow_instance_label.pickle", 'rb') as ilf:
 	trainset_instance_labels = pickle.load(ilf)
 
-with open("bow/trainset_bow_instance_classes.pickle", 'rb') as icf:
+with open("bow/zk4/trainset_bow_instance_classes.pickle", 'rb') as icf:
 	trainset_instance_classes = pickle.load(icf)
 
-with open("bow/trainset_bow_classes_list.pickle", 'rb') as clf:
+with open("bow/zk4/trainset_bow_classes_list.pickle", 'rb') as clf:
 	trainset_classes_list = pickle.load(clf)
 
-with open("bow/testset_bow_instance_label.pickle", 'rb') as ilf:
+with open("bow/test_zk4/testset_bow_instance_label.pickle", 'rb') as ilf:
 	testset_instance_labels = pickle.load(ilf)
 
-with open("bow/testset_bow_instance_classes.pickle", 'rb') as icf:
+with open("bow/test_zk4/testset_bow_instance_classes.pickle", 'rb') as icf:
 	testset_instance_classes = pickle.load(icf)
 
 
@@ -170,8 +170,10 @@ def roc_auc(data_set):
 
 	# Plot all ROC curves
 	plt.figure()
-	plt.plot(fpr["micro"], tpr["micro"], label='micro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["micro"]), color='deeppink', linestyle=':', linewidth=4)
-	plt.plot(fpr["macro"], tpr["macro"], label='macro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["macro"]), color='navy', linestyle=':', linewidth=4)
+	plt.plot(fpr["micro"], tpr["micro"], label='micro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["micro"]), 
+		color='deeppink', linestyle=':', linewidth=4)
+	plt.plot(fpr["macro"], tpr["macro"], label='macro-average ROC curve (area = {0:0.2f})'''.format(roc_auc["macro"]), 
+		color='navy', linestyle=':', linewidth=4)
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
 	plt.xlabel('False Positive Rate')
@@ -209,6 +211,8 @@ if __name__ == '__main__':
 	nb_classifier.fit(X_train, Y_train)
 	Y_pred = nb_classifier.predict(X_test)
 	validate(Y_pred, Y_test, test_list)
+	joblib.dump(nb_classifier, 'HY_zk4_classifier.joblib')
+	print("------------ Model generated ------------")
 
 
 	# split data set
@@ -274,6 +278,5 @@ if __name__ == '__main__':
 	# nb_classifier = BernoulliNB(alpha=0.2, fit_prior=True)
 	# X_train, Y_train = get_instances_vector_label_model(instance_list)
 	# nb_classifier.fit(X_train, Y_train)
-	# joblib.dump(nb_classifier, 'nb_bureau_disp_classifier.joblib')
+	# joblib.dump(nb_classifier, 'zk4_classifier.joblib')
 	# print("------------ Model generated ------------")
-

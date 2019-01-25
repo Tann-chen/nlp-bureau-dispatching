@@ -8,29 +8,18 @@ import requests
 from bs4 import BeautifulSoup
 
 
-global inverse_index
-global testset_instance_tokens
-
-with open("bow/zk4/trainset_bow_inverse_index.pickle", 'rb') as iif:
+with open("../bayes/bow/01234/trainset_bow_inverse_index.pickle", 'rb') as iif:
 	inverse_index = pickle.load(iif)
 
-with open("../bayes/bow/test_zk4/testset_bow_instance_tokens.pickle", 'rb') as itf:
+with open("../bayes/bow/test_zkall/testset_bow_instance_tokens.pickle", 'rb') as itf:
 	testset_instance_tokens = pickle.load(itf)
-
-
-def get_bag_of_word_vector(instance_id):
-	vector = []
-	for token, iid_set in inverse_index.items():
-		if instance_id in iid_set:
-			vector.append(1)
-		else:
-			vector.append(0)
-
-	return vector
 
 
 
 def get_testset_bow_vector(instance_id):
+	global inverse_index
+	global testset_instance_tokens
+
 	if instance_id not in testset_instance_tokens.keys():
 		print("[ERROR] instance id is not invalid")
 	else:	
@@ -44,7 +33,3 @@ def get_testset_bow_vector(instance_id):
 				vector.append(0)
 
 		return vector
-
-
-if __name__ == '__main__':
-	print(get_bag_of_word_vector('197'))
