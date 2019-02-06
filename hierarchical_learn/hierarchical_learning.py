@@ -7,6 +7,8 @@ class HierarchicalLearning:
 		self.sub_classifiers = None
 		self.edges_config = None
 		self.has_init = False
+		self.pred_list = list()
+		self.result_01234 = list()
 
 
 	def classify(self, input):
@@ -15,43 +17,33 @@ class HierarchicalLearning:
 			self.params_check()
 			self.has_init = True
 
-		return self.second_layer_classify(input, self.first_layer_classify(input))
+		first_layer_result =  self.first_layer_classify(input)
+		second_layer_result = self.second_layer_classify(input,first_layer_result)
+		self.pred_list.append(list([first_layer_result, second_layer_result]))
+		self.result_01234.append(first_layer_result)
+		
+		return second_layer_result
 
 
 	def first_layer_classify(self, input):
-		return self.root_classifier.get_predict_proba(input)
+		return self.root_classifier.classify(input)  # return class
 
 
 	def second_layer_classify(self, input, prev_layer_clf_result):
 		# get index of classfier
-		# index_clf = -1
-		# for cfg in self.edges_config:
-		# 	if prev_layer_clf_result == cfg[0]:
-		# 		index_clf = cfg[1]
-		# 		break	
+		index_clf = -1
+		for cfg in self.edges_config:
+			if prev_layer_clf_result == cfg[0]:
+				index_clf = cfg[1]
+				break	
 
-		# if index_clf == -1:
-		# 	raise Exception("edges config error - can not map edge configuration")
+		if index_clf == -1:
+			raise Exception("edges config error - can not map edge configuration")
 
-		# second_layer_classifier = self.sub_classifiers[index_clf]
-		# second_layer_clf_result = second_layer_classifier.classify(input)
-		# return second_layer_clf_result
+		second_layer_classifier = self.sub_classifiers[index_clf]
+		second_layer_clf_result = second_layer_classifier.classify(input)
 
-		# experiment 1
-		prob_max = -1
-		final_class = -1
-		
-		for i in range(0, len(self.sub_classifiers)):
-			prev_prob = prev_layer_clf_result[i]
-			clf_prob = self.sub_classifiers[i].get_predict_proba(input)
-			clf_classes = self.sub_classifiers[i].get_classes()
-
-			for ii in range(0, len(clf_classes)):
-				if clf_classes[ii] not in (0, 1, 2, 3, 4) and (clf_prob[ii]) > prob_max:
-					prob_max = clf_prob[ii]
-					final_class = clf_classes[ii]
-
-		return final_class
+		return second_layer_clf_result
 
 		
 	def params_check(self):
@@ -95,9 +87,3 @@ class HierarchicalLearning:
 		for cfg in edges_config:
 			if cfg is not tuple:
 				raise Exception("elements of edges_config should be a tuple")
-
-
-
-
-
-
